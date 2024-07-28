@@ -43,7 +43,9 @@ class StaticYaraRules(Processor):
                 )
                 cls.compiled_rules.append(YaraFile(rule_path))
             except YaraSignatureError as e:
-                raise PluginError(f"Error loading Yara rules. {e}")
+                log.error(
+                    PluginError(f"Error loading Yara rules. {e}")
+                )
 
     def start(self):
         if not self.compiled_rules:
