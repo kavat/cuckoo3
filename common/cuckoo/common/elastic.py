@@ -88,10 +88,15 @@ class _ESManager:
         self._names_realnames["tasks"] = tasks_index
         self._names_realnames["events"] = events_index
 
+        if user == None or password == None or user == "" or password == "":
+            http_auth = None
+        else:
+            http_auth = (user, password)
+
         self._max_result_window = max_result_window
         self._hosts = hosts
         self._client = Elasticsearch(hosts, timeout=timeout,
-                                     http_auth=(user, password), ca_certs=ca_certs)
+                                     http_auth=http_auth, ca_certs=ca_certs)
         self._initialized = True
 
     def verify(self):
