@@ -16,11 +16,11 @@ from cuckoo.common.result import (
     retriever, Results, ResultDoesNotExistError, InvalidResultDataError
 )
 from cuckoo.common.storage import AnalysisPaths
-
+from cuckoo.common.vmcloak_vm import GetLiveVM
 
 class Manual(View):
 
     def get(self, request):
-        return render(request, template_name="manual/index.html.jinja2")
+        return render(request, template_name="manual/index.html.jinja2", context={"vms": GetLiveVM()})
 
 

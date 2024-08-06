@@ -3,9 +3,28 @@
 {% set title = "Manual" %}
 
 {% block body %}
-  <section class="section">
-    <div class="container is-fixed is-smol">
-      Not available
+  <section class="section is-small has-background-white no-padding-bottom">
+    <div class="container">
+      <h1>Manual analysis</h1>
+      <p>Starting from existing detonation task, you can interact with VM created but only if it is alive</p>
     </div>
+  </section>
+  <section class="section no-padding-y">
+    <table class="table has-sticky-header has-sticky-footer has-striped-rows">
+      <thead class="is-dark">
+        <tr>
+          <th>VM IP</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for vm in vms %}
+        <tr>
+          <td class="is-nowrap">{{ vm.ip }}</td>
+          <td>ciao</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
   </section>
 {% endblock %}
