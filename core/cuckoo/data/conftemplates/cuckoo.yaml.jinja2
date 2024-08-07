@@ -20,6 +20,18 @@ resultserver:
   listen_ip: {{ resultserver.listen_ip }}
   listen_port: {{ resultserver.listen_port }}
 
+guacamole:
+  db_ip: {{ guacamole.db_ip }}
+  db_port: {{ guacamole.db_port }}
+  db_user: {{ guacamole.db_user }}
+  db_passwd: {{ guacamole.db_passwd }}
+  db_name: {{ guacamole.db_name }}
+  web_ip: {{ guacamole.web_ip }}
+  web_port: {{ guacamole.web_port }}
+  web_path: {{ guacamole.web_path }}
+  web_user: {{ guacamole.web_user }}
+  web_passwd: {{ guacamole.web_passwd }}
+
 # Settings used by Cuckoo to find the tcpdump binary to use for network capture of machine traffic.
 tcpdump:
   enabled: {{ tcpdump.enabled }}

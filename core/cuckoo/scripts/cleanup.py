@@ -147,7 +147,7 @@ def remotestorage(ctx, days, yes):
 
 
 @main.command("delete")
-@click.argument("state", type=string)
+@click.argument("state", type=str)
 @click.argument("hours", type=int)
 @click.option("--yes", is_flag=True, help="Skip confirmation screen")
 @click.pass_context
@@ -157,11 +157,21 @@ def delete(ctx, state, hours, yes):
 
     \b
     STATE  untracked, pending_identification, waiting_manual, pending_pre,
-            tasks_pending, no_selected, fatal_error, finished
+            tasks_pending, no_selected, fatal_error, finished, all
     HOURS The age in hours of analyses that should be deleted
     """
 
     try:
-        delete_analyses(state, hours, loglevel=ctx.parent.loglevel, without_confirm=yes)
+        if state == "all":
+            delete_analyses("untracked", 0, loglevel=ctx.parent.loglevel, without_confirm=yes)
+            delete_analyses("pending_identification", 0, loglevel=ctx.parent.loglevel, without_confirm=yes)
+            delete_analyses("waiting_manual", 0, loglevel=ctx.parent.loglevel, without_confirm=yes)
+            delete_analyses("pending_pre", 0, loglevel=ctx.parent.loglevel, without_confirm=yes)
+            delete_analyses("tasks_pending", 0, loglevel=ctx.parent.loglevel, without_confirm=yes)
+            delete_analyses("no_selected", 0, loglevel=ctx.parent.loglevel, without_confirm=yes)
+            delete_analyses("fatal_error", 0, loglevel=ctx.parent.loglevel, without_confirm=yes)
+            delete_analyses("finished", 0, loglevel=ctx.parent.loglevel, without_confirm=yes)
+        else:
+            delete_analyses(state, hours, loglevel=ctx.parent.loglevel, without_confirm=yes)
     except StartupError as e:
         exit_error(e)

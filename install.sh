@@ -2,6 +2,8 @@
 
 pip install -U wheel
 pip install -U requests
+pip install -U python_nmap
+pip install -U mysql-connector-python
 # TMP solution until new versions of sflock etc are released to PyPI
 pip install -U git+https://github.com/cert-ee/peepdf
 pip install -U git+https://github.com/cert-ee/sflock

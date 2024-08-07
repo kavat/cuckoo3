@@ -43,7 +43,7 @@ class ElasticSearch(Reporter):
         )
         init_elasticsearch(
             hosts, indices, timeout=timeout, max_result_window=max_result,
-            create_missing_indices=False,
+            create_missing_indices=True,
             user=user, password=password, ca_certs=ca_certs
         )
 

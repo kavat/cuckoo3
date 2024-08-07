@@ -34,13 +34,25 @@ typeloaders = {
     "cuckoo.yaml": {
         "machineries": config.List(Machinery, value=["qemu"]),
         "resultserver": {
-            "listen_ip": config.String(default_val="192.168.30.101"),
+            "listen_ip": config.String(default_val="192.168.30.1"),
             "listen_port": config.Int(default_val=2042, min_value=1024)
+        },
+        "guacamole": {
+            "db_ip": config.String(default_val="127.0.0.1"),
+            "db_port": config.Int(default_val=3306),
+            "db_user": config.String(default_val="guacamole_user"),
+            "db_passwd": config.String(default_val="password"),
+            "db_name": config.String(default_val="guacamole_db"),
+            "web_ip": config.String(default_val="192.168.1.138"),
+            "web_port": config.Int(default_val=8080),
+            "web_path": config.String(default_val="/guacamole"),
+            "web_user": config.String(default_val="guacadmin"),
+            "web_passwd": config.String(default_val="guacadmin")
         },
         "tcpdump": {
             "enabled": config.Boolean(default_val=True),
             "path": config.FilePath(
-                default_val="/usr/sbin/tcpdump", must_exist=True
+                default_val="/usr/bin/tcpdump", must_exist=True
             )
         },
         "network_routing": {
@@ -106,7 +118,7 @@ typeloaders = {
             )
         },
         "limits": {
-            "max_timeout": config.Int(default_val=300, min_value=1),
+            "max_timeout": config.Int(default_val=900, min_value=1),
             "max_priority": config.Int(default_val=999, min_value=1),
             "max_platforms": config.Int(default_val=3, min_value=1)
         }

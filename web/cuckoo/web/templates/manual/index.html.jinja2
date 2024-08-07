@@ -21,7 +21,7 @@
       {% for vm in vms %}
         <tr>
           <td class="is-nowrap">{{ vm.ip }}</td>
-          <td>ciao</td>
+          <td><a href="{{ vm.url }}" target="_blank">connect</a></td>
         </tr>
       {% endfor %}
       </tbody>
