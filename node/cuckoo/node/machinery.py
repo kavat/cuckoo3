@@ -123,7 +123,8 @@ def start_netcapture(machine):
     ignore_ip_ports = [
         (cfg("cuckoo", "resultserver", "listen_ip"),
          cfg("cuckoo", "resultserver", "listen_port")),
-        (machine.ip, machine.agent_port)
+        (machine.ip, machine.agent_port),
+        (machine.ip, 5900)
     ]
     machine.machinery.start_netcapture(
         machine, TaskPaths.pcap(machine.locked_by),
