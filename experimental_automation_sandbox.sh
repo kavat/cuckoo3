@@ -1,18 +1,19 @@
+# Importing ELK repository
 curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic.gpg
 echo "deb [signed-by=/usr/share/keyrings/elastic.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list
 
+# Installing mandatory packages
 apt update && sudo apt upgrade -y
 apt install git build-essential python3-dev python3.10-venv libhyperscan5 libhyperscan-dev libjpeg8-dev zlib1g-dev unzip p7zip-full rar unace-nonfree cabextract yara tcpdump genisoimage qemu-system-x86 qemu-utils qemu-system-common uwsgi uwsgi-plugin-python3 nginx elasticsearch libcairo2-dev libjpeg-turbo8-dev libpng-dev libtool-bin libossp-uuid-dev libvncserver-dev freerdp2-dev libssh2-1-dev libtelnet-dev libwebsockets-dev libpulse-dev libvorbis-dev libwebp-dev libssl-dev libpango1.0-dev libswscale-dev libavcodec-dev libavutil-dev libavformat-dev tomcat9 tomcat9-admin tomcat9-common tomcat9-user mariadb-server nmap -y
 
+# Adding cuckoo user and providing necessary permissions
 useradd cuckoo
 chsh -s /bin/bash cuckoo
 mkdir /home/cuckoo
 chown cuckoo:cuckoo /home/cuckoo
-
 adduser cuckoo kvm
 adduser www-data cuckoo
 chmod 666 /dev/kvm
-
 groupadd pcap
 adduser cuckoo pcap
 chgrp pcap /usr/bin/tcpdump
@@ -21,6 +22,7 @@ ln -s /etc/apparmor.d/usr.bin.tcpdump /etc/apparmor.d/disable/
 apparmor_parser -R /etc/apparmor.d/disable/usr.bin.tcpdump
 apparmor_parser -r /etc/apparmor.d/usr.bin.tcpdump
 
+# Configuring ELK with no authentication and local binding
 echo "path.data: /var/lib/elasticsearch
 path.logs: /var/log/elasticsearch
 xpack.security.enabled: false
@@ -30,9 +32,11 @@ xpack.security.transport.ssl.enabled: false
 cluster.initial_master_nodes: ["cuckoo01"]
 http.host: 127.0.0.1" > /etc/elasticsearch/elasticsearch.yml
 
+# Enabling and restarting ELK service
 systemctl enable --now elasticsearch
 systemctl restart elasticsearch
 
+# Installing Guacamole to access VM during detonation
 cd /tmp
 wget https://downloads.apache.org/guacamole/1.5.5/source/guacamole-server-1.5.5.tar.gz
 wget https://downloads.apache.org/guacamole/1.5.5/binary/guacamole-1.5.5.war
@@ -45,9 +49,9 @@ ldconfig
 systemctl daemon-reload
 systemctl enable --now guacd
 mv /tmp/guacamole-1.5.5.war /var/lib/tomcat9/webapps/guacamole.war
-
 mkdir -p /etc/guacamole/{extensions,lib}
 
+# Configuring MariaDB and setting this engine as authentication for Guacamole
 mysql_secure_installation
 cd /tmp
 wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-8.0.26.tar.gz
@@ -57,13 +61,12 @@ wget https://downloads.apache.org/guacamole/1.5.5/binary/guacamole-auth-jdbc-1.5
 tar -xf guacamole-auth-jdbc-1.5.5.tar.gz
 mv guacamole-auth-jdbc-1.5.5/mysql/guacamole-auth-jdbc-mysql-1.5.5.jar /etc/guacamole/extensions/
 
-mysql -u root -p
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';
+echo "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';
 CREATE DATABASE guacamole_db;
 CREATE USER 'guacamole_user'@'localhost' IDENTIFIED BY 'password';
 GRANT SELECT,INSERT,UPDATE,DELETE ON guacamole_db.* TO 'guacamole_user'@'localhost';
 FLUSH PRIVILEGES;
-QUIT;
+QUIT;" | mysql -u root -p
 
 cat /tmp/guacamole-auth-jdbc-1.5.5/mysql/schema/*.sql | mysql -u root -p guacamole_db
 
@@ -73,9 +76,11 @@ mysql-database: guacamole_db
 mysql-username: guacamole_user
 mysql-password: password" > /etc/guacamole/guacamole.properties
 
+# Enabling and restarting Tomcat, Guacamole and MariaDB service
 systemctl enable --now tomcat9 guacd mysql
 systemctl restart tomcat9 guacd mysql
 
+# Starting install Cuckoo3
 chown cuckoo /opt && cd /opt
 
 sudo -u cuckoo git clone https://github.com/kavat/cuckoo3
@@ -118,52 +123,32 @@ su - cuckoo
 cd /opt/cuckoo3
 source /opt/cuckoo3/venv/bin/activate
 >> cuckoomigrate database all
->> exit
-
-sudo -u cuckoo vi /home/cuckoo/.cuckoocwd/conf/cuckoo.yaml
-# route/forward traffic between the analysis machines and the resultserver.
-resultserver:
-  listen_ip: 192.168.30.1
-  listen_port: 2042
-
-# Settings used by Cuckoo to find the tcpdump binary to use for network capture of machine traffic.
-tcpdump:
-  enabled: True
-  path: /usr/bin/tcpdump
-
-sudo -u cuckoo vi /home/cuckoo/.cuckoocwd/conf/web/web.yaml
-Edit the subnets in ``allowed_subnets’’. In my case (192.168.68.0/24)
-set statistics a True
-
-cd /opt/cuckoo3/docs
-sudo -u cuckoo /opt/cuckoo3/venv/bin/pip install -r requirements.txt
-sudo -u cuckoo /opt/cuckoo3/venv/bin/mkdocs build
-sudo -u cuckoo cp -R site ../web/cuckoo/web/static/docs
-sudo -u cuckoo /opt/cuckoo3/venv/bin/pip install uwsgi
-sudo -u cuckoo /opt/cuckoo3/venv/bin/cuckoo --debug
-
-su - cuckoo
-source /opt/cuckoo3/venv/bin/activate
+>> cd /opt/cuckoo3/docs
+>> pip install -r requirements.txt
+>> mkdocs build
+>> cp -R site ../web/cuckoo/web/static/docs
+>> pip install uwsgi
+>> cuckoo --debug # Test if all it's ok and after exit forcely
 >> cuckoo web generateconfig --uwsgi > /tmp/cuckoo-web.ini
 >> exit
+
+# Check if /home/cuckoo/.cuckoocwd/conf/cuckoo.yaml is ok
+# Check if /home/cuckoo/.cuckoocwd/conf/web/web.yaml is ok
+
 mv /tmp/cuckoo-web.ini /etc/uwsgi/apps-available/
 ln -s /etc/uwsgi/apps-available/cuckoo-web.ini /etc/uwsgi/apps-enabled/cuckoo-web.ini
 
 sudo -u cuckoo echo 'STATIC_ROOT = "/opt/cuckoo3/web/cuckoo/web/static"' >> /home/cuckoo/.cuckoocwd/web/web_local_settings.py
 sudo -u cuckoo /opt/cuckoo3/venv/bin/cuckoo web generateconfig --nginx > /tmp/cuckoo-web.conf
-vi /tmp/cuckoo-web.conf
 
-upstream _uwsgi_cuckoo_web {
+echo "upstream _uwsgi_cuckoo_web {
     server 127.0.0.1:9090;
 }
-
 server {
     listen 80;
-
     location /static {
         alias /opt/cuckoo3/web/cuckoo/web/static;
     }
-   
     location /manually {
         proxy_pass http://127.0.0.1:8080;
         proxy_buffering off;
@@ -171,10 +156,8 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $http_connection;
-        proxy_set_header Authorization "Basic Z3VhY2FkbWluOmd1YWNhZG1pbgo=";
         access_log off;
     } 
-
     location / {
         client_max_body_size 1G;
         proxy_redirect off;
@@ -182,11 +165,12 @@ server {
         include uwsgi_params;
         uwsgi_pass _uwsgi_cuckoo_web;
     }
-}
+}" > /tmp/cuckoo-web.conf
 
 mv /tmp/cuckoo-web.conf /etc/nginx/sites-available/cuckoo-web.conf
 ln -s /etc/nginx/sites-available/cuckoo-web.conf /etc/nginx/sites-enabled/cuckoo-web.conf
 rm /etc/nginx/sites-enabled/default
+
 systemctl enable --now nginx uwsgi
 systemctl restart nginx uwsgi
 

@@ -22,6 +22,7 @@
     {% for href, id, caption in topleft_nav %}
       <a href="{{ url(href) }}" class="navbar-link {% if id == active_page %}is-active{% endif %}">{{ caption|e }}</a>
     {% endfor %}
+    <a href="/static/docs/" target="_blank" class="navbar-link">Documentation</a>
   </div>
   <div class="navbar-end">
     <div class="navbar-loader" id="loader" hidden>
