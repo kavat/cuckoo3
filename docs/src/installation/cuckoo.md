@@ -17,11 +17,9 @@ The following steps are for a normal/generic Cuckoo setup. This is the type of s
 
 **1. Install all [system dependencies](deps.md)**
 
-!!! note "Note"
-    `$A` is used as the location where the delivery archive was extracted.
+**2. Create [dedicated user](user.md) and set system correctly**
 
-
-**2. Installing Cuckoo 3 from a delivery archive.**
+**3. Installing Cuckoo 3 from a delivery archive.**
 
 2.1 Create and activate a new Python >=3.10 virtualenv
 
