@@ -85,6 +85,7 @@ chown cuckoo /opt && cd /opt
 
 sudo -u cuckoo git clone https://github.com/kavat/cuckoo3
 sudo -u cuckoo git clone https://github.com/kavat/vmcloak
+sudo -u cuckoo git clone https://github.com/kavat/anubi
 
 sudo -u cuckoo python3 -m venv /opt/cuckoo3/venv
 
@@ -98,6 +99,9 @@ source /opt/cuckoo3/venv/bin/activate
 >> unzip signatures.zip -d ~/.cuckoocwd/signatures/cuckoo/
 >> cd ../vmcloak
 >> pip install .
+>> cd ../anubi
+>> pip install -r pip_requirements.txt
+>> ln -s /opt/anubi /opt/cuckoo3/anubi
 >> exit
 
 echo '#!/bin/bash
