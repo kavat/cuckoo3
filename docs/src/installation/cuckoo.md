@@ -19,55 +19,221 @@ The following steps are for a normal/generic Cuckoo setup. This is the type of s
 
 **2. Create [dedicated user](user.md) and set system correctly**
 
-**3. Installing Cuckoo 3 from a delivery archive.**
+**3. Installing Cuckoo 3 and Vmcloak from a delivery archive.**
 
-2.1 Create and activate a new Python >=3.10 virtualenv
+3.1 Clone the archives
 
-2.2 Navigate to the `$A/cuckoo/cuckoo3` directory and run install.sh
+as cuckoo user
+```bash
+su - cuckoo
+cd /opt
+git clone https://github.com/kavat/cuckoo3
+git clone https://github.com/kavat/vmcloak
+```
 
+3.1 Create and activate a new Python >=3.10 virtualenv
 
-    ./install.sh
+as cuckoo user
+```bash
+su - cuckoo
+python3 -m venv /opt/cuckoo3/venv
+```
 
+3.2 Install Cuckoo 3
 
-!!! note "Note"
-    When specifying `$CWD`, this refers to the Cuckoo working directory that is used.
+as cuckoo user
+```bash
+su - cuckoo
+source /opt/cuckoo3/venv/bin/activate
+>> cd /opt/cuckoo3
+>> pip install wheel
+>> ./install.sh
+```
 
-**3. Creating the Cuckoo CWD.**
+3.3 Creating the Cuckoo CWD.**
 
 By default this will be in `$HOME/.cuckoocwd`. The CWD is where
 Cuckoo stores all its results, configurations, and other files. The CWD will be referred to as $CWD.
 
+as cuckoo user
+```bash
+su - cuckoo
+source /opt/cuckoo3/venv/bin/activate
+>> cd /opt/cuckoo3
+>> cuckoo createcwd
+```
 
-    cuckoo createcwd
-
-**4. Installing the stager and monitor binaries**
+3.4 Installing the stager and monitor binaries**
 
 The next step is to install the stager and monitor binaries. These are components that
 are uploaded to the analysis vm and perform the actual behavioral collection.
 
-    cuckoo getmonitor $A/cuckoo/monitor.zip
+as cuckoo user
+```bash
+su - cuckoo
+source /opt/cuckoo3/venv/bin/activate
+>> cd /opt/cuckoo3
+>> cuckoo getmonitor monitor.zip
+```
 
-**5. Choosing a machinery module and configuring machines.**
+3.5 Installing the Cuckoo signatures
 
-5.1 Choose the virtualization/machinery software from the [machineries modules page](machineries.md) and perform the required steps listed.
+as cuckoo user
+```bash
+su - cuckoo
+cd /opt/cuckoo3
+unzip signatures.zip -d /home/cuckoo/.cuckoocwd/signatures/cuckoo/
+```
 
-5.2 Create analysis VMs taking into account the [requirements listed here](vmcreation.md).
+3.6 Install Vmcloak
 
-5.3 Add the VMs to the chosen machinery configuration as [described here](vmcreation.md#adding-machines-to-cuckoo).
+VMCloak is a utility for automatically creating Virtual Machines with Windows as guest Operating System.
 
-**6. Installing the Cuckoo signatures**.
+as cuckoo user
+```bash
+su - cuckoo
+source /opt/cuckoo3/venv/bin/activate
+>> cd /opt/vmcloak
+>> pip install .
+```
 
- Unpack everything from `$A/cuckoo/signatures.zip` to `$CWD/signatures/cuckoo`
+**6. Configure VM system for detonation scope.**
 
-**7. Start Cuckoo**
+6.1 Download Windows 10 ISO provided by Vmcloak and mount it
+
+as privileged user
+```bash
+sudo -u cuckoo /opt/cuckoo3/venv/bin/vmcloak isodownload --win10x64 --download-to /home/cuckoo/win10x64.iso
+mkdir /mnt/win10x64
+mount -o loop,ro /home/cuckoo/win10x64.iso /mnt/win10x64
+```
+
+6.2 Create the bridge for networking
+
+as privileged user
+```bash
+/opt/cuckoo3/venv/bin/vmcloak-qemubridge br0 192.168.30.1/24
+mkdir -p /etc/qemu
+echo 'allow br0' | sudo tee /etc/qemu/bridge.conf
+chmod u+s /usr/lib/qemu/qemu-bridge-helper
+```
+
+Note: at server boot if you don't create a service that run `/opt/cuckoo3/venv/bin/vmcloak-qemubridge br0 192.168.30.1/24` bridge shall be recrated newly.
+
+6.3 Init VM, install requirements and snapshot it
+
+as cuckoo user
+```bash
+su - cuckoo
+/opt/cuckoo3/venv/bin/vmcloak --debug init --win10x64 --hddsize 128 --cpus 2 --ramsize 4096 --network 192.168.30.0/24 --vm qemu --ip 192.168.30.2 --iso-mount /mnt/win10x64 win10base br0
+/opt/cuckoo3/venv/bin/vmcloak --debug install win10base dotnet:4.7.2 java:7u80 vcredist:2013 vcredist:2019 edge carootcert wallpaper disableservices
+/opt/cuckoo3/venv/bin/vmcloak --debug snapshot --count 1 win10base win10vm_192.168.30.2
+```
+
+6.4 Import VM in Cuckoo 3
+
+as cuckoo user
+```bash
+su - cuckoo
+/opt/cuckoo3/venv/bin/cuckoo machine import qemu /home/cuckoo/.vmcloak/vms/qemu
+/opt/cuckoo3/venv/bin/cuckoo machine delete qemu example1
+```
+
+Additional information and details for Section 6 can be found at:
+* virtualization/machinery software in [machineries modules page](machineries.md)
+* VM through Vmcloak in [vm module page](vmcreation.md).
+
+**7. Migrate Cuckoo Database**
+
+as cuckoo user
+```bash
+su - cuckoo
+cd /opt/cuckoo3
+source /opt/cuckoo3/venv/bin/activate
+>> cuckoomigrate database all
+```
+
+Don't consider error raised up
+
+**8. Install Cuckoo 3 documentation**
+
+as cuckoo user
+```bash
+su - cuckoo
+cd /opt/cuckoo3/docs
+source /opt/cuckoo3/venv/bin/activate
+>> cd /opt/cuckoo3/docs
+>> pip install -r requirements.txt
+>> mkdocs build
+>> cp -R site ../web/cuckoo/web/static/docs
+```
+
+**9. Generate web configurations**
+
+as cuckoo user
+```bash
+su - cuckoo
+cd /opt/cuckoo3
+source /opt/cuckoo3/venv/bin/activate
+>> pip install uwsgi
+>> cuckoo web generateconfig --uwsgi > /tmp/cuckoo-web.ini
+>> echo 'STATIC_ROOT = "/opt/cuckoo3/web/cuckoo/web/static"' >> /home/cuckoo/.cuckoocwd/web/web_local_settings.py
+>> cuckoo web generateconfig --nginx > /tmp/cuckoo-web.conf
+```
+
+as privileged user
+```bash
+mv /tmp/cuckoo-web.ini /etc/uwsgi/apps-available/
+ln -s /etc/uwsgi/apps-available/cuckoo-web.ini /etc/uwsgi/apps-enabled/cuckoo-web.ini
+echo "upstream _uwsgi_cuckoo_web {
+    server 127.0.0.1:9090;
+}
+server {
+    listen 80;
+    location /static {
+        alias /opt/cuckoo3/web/cuckoo/web/static;
+    }
+    location /manually {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_buffering off;
+        proxy_http_version 1.1;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $http_connection;
+        access_log off;
+    } 
+    location / {
+        client_max_body_size 1G;
+        proxy_redirect off;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        include uwsgi_params;
+        uwsgi_pass _uwsgi_cuckoo_web;
+    }
+}" > /tmp/cuckoo-web.conf
+
+mv /tmp/cuckoo-web.conf /etc/nginx/sites-available/cuckoo-web.conf
+ln -s /etc/nginx/sites-available/cuckoo-web.conf /etc/nginx/sites-enabled/cuckoo-web.conf
+rm /etc/nginx/sites-enabled/default
+
+systemctl enable --now nginx uwsgi
+systemctl restart nginx uwsgi
+```
+
+**10. Start Cuckoo 3
 
 Cuckoo can now be started using the following command:
 
-    cuckoo --cwd <cwd path>
+```bash
+su - cuckoo -c "/opt/cuckoo3/venv/bin/cuckoo --cwd <cwd path> --debug --cancel-abandoned
+```
 
 Or with the default cwd:
 
-    cuckoo
+```bash
+su - cuckoo -c "/opt/cuckoo3/venv/bin/cuckoo --debug --cancel-abandoned
+```
+
+Flag --debug can be omitted after first launches, --cancel-abandoned is mandatory if you want to don't consider abandoned tasks
 
 
 ### Installing Cuckoo distributed
@@ -89,10 +255,10 @@ We start with setting up one or more task running nodes:
 
 **1. Perform the following for each task running node.**
 
-Follow steps 1 to 5 of the [Installing Cuckoo](#installing-cuckoo) steps.
+Follow steps 1 to 9 of the [Installing Cuckoo](#installing-cuckoo) steps.
 
 **2. Start the node(s) by running the following command**
-
+    
     cuckoonode --host <listen ip> --port <listen port>
 
 **3. Copy and store the node API key somewhere.**
