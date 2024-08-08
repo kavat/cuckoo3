@@ -10,6 +10,11 @@
         <a class="{% if report_page == 'sample' %}is-active{% endif %}" href="{{ url('Analysis/index', args=[analysis_id]) }}">Analysis</a>
         {% if pre %}
           <ul>
+            {% if pre.anubi %}
+              <li>
+                <a role="tab" href="#anubi">Anubi</a>
+              </li>
+            {% endif %}
             {% if pre.static and pre.static.pe %}
               <li>
                 <a role="tab" href="#pefiles">PE File</a>

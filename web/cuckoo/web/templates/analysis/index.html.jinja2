@@ -163,6 +163,13 @@
           </div>
         {% endif %}
 
+        {# tab: pre.anubi #}
+        {% if pre.anubi %}
+          <div role="region" id="anubi" hidden>
+            {% include "analysis/components/anubi.html.jinja2" %}
+          </div>
+        {% endif %}
+
       </section>
     </div>
   </div>

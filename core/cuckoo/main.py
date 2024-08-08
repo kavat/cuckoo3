@@ -20,6 +20,7 @@ from cuckoo.common.startup import init_database
 @click.option("--cancel-abandoned", is_flag=True, help="Do not recover and cancel tasks that are abandoned and still 'running'")
 @click.pass_context
 def main(ctx, cwd, distributed, debug, quiet, verbose, cancel_abandoned):
+
     if not cwd:
         cwd = cuckoocwd.DEFAULT
 

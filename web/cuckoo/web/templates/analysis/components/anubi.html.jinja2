@@ -1,0 +1,23 @@
+{% call ui_box(title="Anubi", has_padding=False) %}
+  <table class="table has-striped-rows">
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Detection</th>
+        <th>Threat Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ pre.anubi.file }}</td>
+        <td>Hash</td>
+        <td>{{ pre.anubi.hash_scan }}</td>
+      </tr>
+      {% for m in pre.anubi.yara_scan %}
+        <td>{{ pre.anubi.file }}</td>
+        <td>Yara</td>
+        <td>{{ m }}</td>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endcall %}

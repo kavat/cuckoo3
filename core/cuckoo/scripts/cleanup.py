@@ -76,10 +76,10 @@ def delete_analyses(state, older_than_hours, loglevel, without_confirm=False):
         exit_error(f"Invalid state: {state}")
     analyses, date = find_analyses_hours(older_than_hours, state)
     if not analyses:
-        print_info(f"No finished analyses older than {date} found.")
+        print_info(f"No {state} analyses older than {date} found.")
         return
 
-    print_info(f"Found {len(analyses)} older than {date}")
+    print_info(f"Found {len(analyses)} {state} older than {date}")
     if not without_confirm and not click.confirm(
             f"Delete {len(analyses)} analyses? "
             f"This cannot be undone."
@@ -157,7 +157,7 @@ def delete(ctx, state, hours, yes):
 
     \b
     STATE  untracked, pending_identification, waiting_manual, pending_pre,
-            tasks_pending, no_selected, fatal_error, finished, all
+            tasks_pending, no_selected, fatal_error, finished
     HOURS The age in hours of analyses that should be deleted
     """
 

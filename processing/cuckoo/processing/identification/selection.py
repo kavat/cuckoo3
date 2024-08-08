@@ -9,7 +9,12 @@ import sflock.exception
 
 from cuckoo.common.config import cfg
 from cuckoo.common.log import set_logger_level
-from cuckoo.common.storage import AnalysisPaths
+from cuckoo.common.storage import (
+  AnalysisPaths,
+  Paths, 
+  Binaries
+)
+from cuckoo.common.external_interactions import anubi_analyze_single_file
 
 from ..abtracts import Processor
 from ..errors import CancelProcessing
@@ -43,6 +48,10 @@ def _write_filetree(analysis_id, tree):
 def _write_filemap(analysis_id, filemap):
     with open(AnalysisPaths.filemap(analysis_id), "w") as fp:
         json.dump(filemap, fp)
+
+def _write_anubi(analysis_id, anubi_results):
+    with open(AnalysisPaths.fileanubi(analysis_id), "w") as fp:
+        json.dump(anubi_results, fp)
 
 def _make_ident_filename(f):
     if f.extension and not f.filename.lower().endswith(f.extension):
@@ -218,10 +227,13 @@ class SelectFile(Processor):
         if target:
             self.ctx.log.debug("File selected.", file=repr(target.filename))
         else:
+            self.ctx.log.debug("No file selected")
             # If no file was selected, set the target as the submitted file. A
             # manual analysis or one that ignores identify still needs the
             # information such as the file extension.
             target = unpackedfile
+
+        print("passo")
 
         ident_filename = _make_ident_filename(target)
         if ident_filename != target.filename:
@@ -240,6 +252,11 @@ class SelectFile(Processor):
                     count=len(unidentified),
                     files=", ".join(f.filename for f in unidentified)
                 )
+
+        #uploaded_filepath, _ = Binaries.path(
+        #    Paths.binaries(), target.sha256
+        #)
+        #_write_anubi(self.ctx.analysis.id, anubi_analyze_single_file(uploaded_filepath))
 
         return {
             "identified": target.identified,

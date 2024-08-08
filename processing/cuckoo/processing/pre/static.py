@@ -3,11 +3,26 @@
 import os.path
 
 from cuckoo.common.storage import Paths, Binaries
+from cuckoo.common.external_interactions import anubi_analyze_single_file
 
 from ..abtracts import Processor
 from ..static.pe import PEFile
 from ..static.office import OfficeDocument
 from ..errors import StaticAnalysisError
+
+class AnubiAnalysis(Processor):
+
+    CATEGORY = ["file"]
+    KEY = "anubi"
+
+    def start(self):
+        target = self.ctx.result.get("target")
+
+        file_path, _ = Binaries.path(Paths.binaries(), target.sha256)
+        if os.path.getsize(file_path) < 1:
+            return {}
+
+        return anubi_analyze_single_file(file_path, target.orig_filename)
 
 class FileInfoGather(Processor):
 

@@ -43,6 +43,7 @@ class Pcapreader(Processor):
         if not TaskPaths.pcap(self.ctx.task.id).is_file():
             raise DisablePluginError("No PCAP available")
 
+        print("CAVA apro PCAP")
         self.ip_sl.clear_temp()
 
         tls_secrets = self.ctx.network.tls.sessions

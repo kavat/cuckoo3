@@ -35,6 +35,7 @@ def index(request, analysis_id, task_id):
 
     try:
         postreport = result.post
+        print(postreport.network)
         machine = result.machine
     except ResultDoesNotExistError:
         return HttpResponseNotFound()

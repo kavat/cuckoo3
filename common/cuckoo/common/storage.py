@@ -438,6 +438,10 @@ class AnalysisPaths:
         return AnalysisPaths._path(analysis_id, "filemap.json")
 
     @staticmethod
+    def fileanubi(analysis_id):
+        return AnalysisPaths._path(analysis_id, "anubi.json")
+
+    @staticmethod
     def zipified_file(analysis_id):
         return AnalysisPaths._path(analysis_id, "target.zip")
 

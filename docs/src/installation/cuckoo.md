@@ -19,7 +19,7 @@ The following steps are for a normal/generic Cuckoo setup. This is the type of s
 
 **2. Create [dedicated user](user.md) and set system correctly**
 
-**3. Installing Cuckoo 3 and Vmcloak from a delivery archive.**
+**3. Installing Cuckoo 3, Vmcloak and Anubi from a delivery archive.**
 
 3.1 Clone the archives
 
@@ -29,6 +29,7 @@ su - cuckoo
 cd /opt
 git clone https://github.com/kavat/cuckoo3
 git clone https://github.com/kavat/vmcloak
+git clone https://github.com/kavat/anubi
 ```
 
 3.1 Create and activate a new Python >=3.10 virtualenv
@@ -50,7 +51,7 @@ source /opt/cuckoo3/venv/bin/activate
 >> ./install.sh
 ```
 
-3.3 Creating the Cuckoo CWD.**
+3.2.1 Creating the Cuckoo CWD.**
 
 By default this will be in `$HOME/.cuckoocwd`. The CWD is where
 Cuckoo stores all its results, configurations, and other files. The CWD will be referred to as $CWD.
@@ -63,7 +64,7 @@ source /opt/cuckoo3/venv/bin/activate
 >> cuckoo createcwd
 ```
 
-3.4 Installing the stager and monitor binaries**
+3.2.2 Installing the stager and monitor binaries**
 
 The next step is to install the stager and monitor binaries. These are components that
 are uploaded to the analysis vm and perform the actual behavioral collection.
@@ -76,7 +77,7 @@ source /opt/cuckoo3/venv/bin/activate
 >> cuckoo getmonitor monitor.zip
 ```
 
-3.5 Installing the Cuckoo signatures
+3.2.3 Installing the Cuckoo signatures
 
 as cuckoo user
 ```bash
@@ -85,7 +86,7 @@ cd /opt/cuckoo3
 unzip signatures.zip -d /home/cuckoo/.cuckoocwd/signatures/cuckoo/
 ```
 
-3.6 Install Vmcloak
+3.3 Install Vmcloak
 
 VMCloak is a utility for automatically creating Virtual Machines with Windows as guest Operating System.
 
@@ -94,12 +95,23 @@ as cuckoo user
 su - cuckoo
 source /opt/cuckoo3/venv/bin/activate
 >> cd /opt/vmcloak
->> pip install .
+>> pip install -U .
 ```
 
-**6. Configure VM system for detonation scope.**
+3.4 Install Anubi
 
-6.1 Download Windows 10 ISO provided by Vmcloak and mount it
+as cuckoo user
+```bash
+su - cuckoo
+source /opt/cuckoo3/venv/bin/activate
+>> cd /opt/anubi
+>> pip install -U -r pip_requirements.txt
+>> ln -s /opt/anubi /opt/cuckoo3/anubi
+```
+
+**4. Configure VM system for detonation scope.**
+
+4.1 Download Windows 10 ISO provided by Vmcloak and mount it
 
 as privileged user
 ```bash
@@ -108,7 +120,7 @@ mkdir /mnt/win10x64
 mount -o loop,ro /home/cuckoo/win10x64.iso /mnt/win10x64
 ```
 
-6.2 Create the bridge for networking
+4.2 Create the bridge for networking
 
 as privileged user
 ```bash
@@ -120,7 +132,7 @@ chmod u+s /usr/lib/qemu/qemu-bridge-helper
 
 Note: at server boot if you don't create a service that run `/opt/cuckoo3/venv/bin/vmcloak-qemubridge br0 192.168.30.1/24` bridge shall be recrated newly.
 
-6.3 Init VM, install requirements and snapshot it
+4.3 Init VM, install requirements and snapshot it
 
 as cuckoo user
 ```bash
@@ -130,7 +142,7 @@ su - cuckoo
 /opt/cuckoo3/venv/bin/vmcloak --debug snapshot --count 1 win10base win10vm_192.168.30.2
 ```
 
-6.4 Import VM in Cuckoo 3
+4.4 Import VM in Cuckoo 3
 
 as cuckoo user
 ```bash
@@ -143,7 +155,7 @@ Additional information and details for Section 6 can be found at:
 * virtualization/machinery software in [machineries modules page](machineries.md)
 * VM through Vmcloak in [vm module page](vmcreation.md).
 
-**7. Migrate Cuckoo Database**
+**5. Migrate Cuckoo Database**
 
 as cuckoo user
 ```bash
@@ -155,7 +167,7 @@ source /opt/cuckoo3/venv/bin/activate
 
 Don't consider error raised up
 
-**8. Install Cuckoo 3 documentation**
+**6. Install Cuckoo 3 documentation**
 
 as cuckoo user
 ```bash
@@ -168,7 +180,7 @@ source /opt/cuckoo3/venv/bin/activate
 >> cp -R site ../web/cuckoo/web/static/docs
 ```
 
-**9. Generate web configurations**
+**7. Generate web configurations**
 
 as cuckoo user
 ```bash
@@ -219,7 +231,7 @@ systemctl enable --now nginx uwsgi
 systemctl restart nginx uwsgi
 ```
 
-**10. Start Cuckoo 3
+**8. Start Cuckoo 3
 
 Cuckoo can now be started using the following command:
 
@@ -255,7 +267,7 @@ We start with setting up one or more task running nodes:
 
 **1. Perform the following for each task running node.**
 
-Follow steps 1 to 9 of the [Installing Cuckoo](#installing-cuckoo) steps.
+Follow steps 1 to 8 of the [Installing Cuckoo](#installing-cuckoo) steps.
 
 **2. Start the node(s) by running the following command**
     
