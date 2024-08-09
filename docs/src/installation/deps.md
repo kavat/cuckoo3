@@ -30,7 +30,7 @@ xpack.security.enabled: false
 xpack.security.enrollment.enabled: false
 xpack.security.http.ssl.enabled: false
 xpack.security.transport.ssl.enabled: false
-cluster.initial_master_nodes: ["cuckoo01"]
+cluster.initial_master_nodes: [\"$(hostname)\"]
 http.host: 127.0.0.1" > /etc/elasticsearch/elasticsearch.yml
 
 systemctl enable --now elasticsearch
