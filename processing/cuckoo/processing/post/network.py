@@ -3,6 +3,10 @@
 
 import logging
 import os
+import sys
+import socket
+import dpkt as dpkt_parser
+
 from dpkt import http as dpkthttp
 from httpreplay import (
     reader, protohandlers, udpprotoparsers, transport, protoparsers,
@@ -358,9 +362,6 @@ class Pcapreader(Processor):
                     results
                 )
 
-            if proto in ("udp", "tcp"):
-                self._add_deep(ts, (flow[0], flow[1]), (flow[2], flow[3]), proto, sent, results)
-
             for host in (src_host, dst_host):
 
                 # Do not log the machine IP as a contacted host
@@ -373,6 +374,36 @@ class Pcapreader(Processor):
 
                 if host not in hosts:
                     hosts.append(host)
+
+        # using manual mode because with their implementation packets with only SYN are discarded
+        captured_pcap = open(pcap_path, 'rb')
+        fpcap = dpkt_parser.pcap.Reader(captured_pcap)
+
+        for ts,buf in fpcap:
+            eth = dpkt_parser.ethernet.Ethernet(buf)
+            ip = eth.data
+
+            try:
+                if ip.p not in (dpkt_parser.ip.IP_PROTO_TCP, dpkt_parser.ip.IP_PROTO_UDP):
+                    continue
+            except:
+                continue
+
+            l4 = ip.data
+            ip_src = socket.inet_ntoa(ip.src) # converting into human readable format
+            ip_dst = socket.inet_ntoa(ip.dst)
+            port_src = ip.data.sport
+            port_dst = ip.data.dport
+
+            proto = ""
+            if ip.p == 17:
+                proto = "udp"
+            if ip.p == 6:
+                proto = "tcp"
+            if proto in ("udp", "tcp"):
+                self._add_deep(ts, (ip_src, port_src), (ip_dst, port_dst), proto, ip.data, results)
+
+        captured_pcap.close()
 
         return results
 
