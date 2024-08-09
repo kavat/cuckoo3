@@ -71,8 +71,7 @@ echo "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';
 CREATE DATABASE guacamole_db;
 CREATE USER 'guacamole_user'@'localhost' IDENTIFIED BY 'password';
 GRANT SELECT,INSERT,UPDATE,DELETE ON guacamole_db.* TO 'guacamole_user'@'localhost';
-FLUSH PRIVILEGES;
-QUIT;" | mysql -u root -p
+FLUSH PRIVILEGES;" | mysql -u root -p
 
 cat /tmp/guacamole-auth-jdbc-1.5.5/mysql/schema/*.sql | mysql -u root -p guacamole_db
 

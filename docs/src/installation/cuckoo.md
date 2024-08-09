@@ -209,15 +209,15 @@ server {
         proxy_pass http://127.0.0.1:8080;
         proxy_buffering off;
         proxy_http_version 1.1;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $http_connection;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$http_connection;
         access_log off;
     } 
     location / {
         client_max_body_size 1G;
         proxy_redirect off;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto \$scheme;
         include uwsgi_params;
         uwsgi_pass _uwsgi_cuckoo_web;
     }
