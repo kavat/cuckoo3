@@ -2,6 +2,7 @@
 # See the file 'LICENSE' for copying permission.
 import os.path
 
+from cuckoo.common.config import cfg
 from cuckoo.common.storage import Paths, Binaries
 from cuckoo.common.external_interactions import anubi_analyze_single_file
 
