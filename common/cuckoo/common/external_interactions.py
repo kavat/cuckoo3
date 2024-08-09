@@ -23,6 +23,10 @@ from core.hash_scanner import (
   hash_scan_single_file
 )
 
+from core.ip_checker import (
+  IpChecker
+)
+
 def anubi_analyze_single_file(filepath, orig_filename):
 
   rit = {'status':True, 'hash_scan':"", 'yara_scan':[], 'msg':"", "file":orig_filename}
@@ -53,3 +57,10 @@ def anubi_analyze_single_file(filepath, orig_filename):
     rit['yara_scan'].append("No Yara rule triggered")
   
   return rit
+
+class AnubiIPChecker:
+  def __init__(self):
+    self.ip_checker = IpChecker()
+
+  def scan_flow(self, src, sport, dst, dport, proto):
+    return self.ip_checker.scan_network_flow(src, sport, dst, dport, proto)

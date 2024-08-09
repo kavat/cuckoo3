@@ -17,6 +17,7 @@ from cuckoo.processing.signatures.pattern import (
     PatternScanner, PatternSignatureError
 )
 from cuckoo.processing.signatures.signature import IOC
+from cuckoo.common.external_interactions import AnubiIPChecker
 
 from ..abtracts import Processor
 
@@ -43,7 +44,6 @@ class Pcapreader(Processor):
         if not TaskPaths.pcap(self.ctx.task.id).is_file():
             raise DisablePluginError("No PCAP available")
 
-        print("CAVA apro PCAP")
         self.ip_sl.clear_temp()
 
         tls_secrets = self.ctx.network.tls.sessions
@@ -62,6 +62,8 @@ class Pcapreader(Processor):
             53: protohandlers.DNS,
             "generic": protohandlers.forward_handler
         }
+
+        self.anubi_ip_checker = AnubiIPChecker()
 
     def _make_http_headers(self, httpdata):
         headers = []
@@ -283,6 +285,20 @@ class Pcapreader(Processor):
 
                 answers.append(ans)
 
+    def _add_deep(self, ts, src, dst, proto, data, tracker):
+        srcip, srcport = src
+        dstip, dstport = dst
+
+        tracker.setdefault("deep", []).append({
+            "dstip": dstip,
+            "dstport": dstport,
+            "srcip": srcip,
+            "srcport": srcport,
+            "proto": proto,
+            "size": len(data),
+            "detection": self.anubi_ip_checker.scan_flow(srcip, srcport, dstip, dstport, proto)
+        })
+
     def _add_udp(self, ts, src, dst, proto, data, tracker):
         srcip, srcport = src
         dstip, dstport = dst
@@ -341,6 +357,9 @@ class Pcapreader(Processor):
                     ts, (flow[0], flow[1]), (flow[2], flow[3]), proto, sent,
                     results
                 )
+
+            if proto in ("udp", "tcp"):
+                self._add_deep(ts, (flow[0], flow[1]), (flow[2], flow[3]), proto, sent, results)
 
             for host in (src_host, dst_host):
 
