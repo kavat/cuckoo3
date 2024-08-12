@@ -156,6 +156,9 @@ source /opt/cuckoo3/venv/bin/activate
 mv /tmp/cuckoo-web.ini /etc/uwsgi/apps-available/
 ln -s /etc/uwsgi/apps-available/cuckoo-web.ini /etc/uwsgi/apps-enabled/cuckoo-web.ini
 
+echo '[Unit]
+After=remote-fs.target network-online.target elasticsearch.target' > /etc/systemd/system/uwsgi.service.d/override.conf
+
 sudo -u cuckoo echo 'STATIC_ROOT = "/opt/cuckoo3/web/cuckoo/web/static"' >> /home/cuckoo/.cuckoocwd/web/web_local_settings.py
 sudo -u cuckoo /opt/cuckoo3/venv/bin/cuckoo web generateconfig --nginx > /tmp/cuckoo-web.conf
 
@@ -189,6 +192,7 @@ mv /tmp/cuckoo-web.conf /etc/nginx/sites-available/cuckoo-web.conf
 ln -s /etc/nginx/sites-available/cuckoo-web.conf /etc/nginx/sites-enabled/cuckoo-web.conf
 rm /etc/nginx/sites-enabled/default
 
+systemctl daemon-reload
 systemctl enable --now nginx uwsgi
 systemctl restart nginx uwsgi
 
