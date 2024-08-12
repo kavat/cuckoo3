@@ -5,6 +5,17 @@ from secrets import token_hex
 
 from cuckoo.common import config
 
+from netifaces import interfaces, ifaddresses, AF_INET
+
+
+def get_my_local_ip():
+  iplist = [ifaddresses(face)[AF_INET][0]["addr"] for face in interfaces() if AF_INET in ifaddresses(face)]
+  for ip_ in iplist:
+    if ip_ != "127.0.0.1" and ip_.startswith('192.168.30') == False:
+      return ip_
+            
+  return ""
+
 class Machinery(config.String):
 
     _MACHINERY_CACHE = []
@@ -43,7 +54,7 @@ typeloaders = {
             "db_user": config.String(default_val="guacamole_user"),
             "db_passwd": config.String(default_val="password"),
             "db_name": config.String(default_val="guacamole_db"),
-            "web_ip": config.String(default_val="192.168.1.138"),
+            "web_ip": config.String(default_val=get_my_local_ip()),
             "web_port": config.Int(default_val=8080),
             "web_path": config.String(default_val="/guacamole"),
             "web_user": config.String(default_val="guacadmin"),
