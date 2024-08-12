@@ -9,6 +9,7 @@ from cuckoo.common.external_interactions import anubi_analyze_single_file
 from ..abtracts import Processor
 from ..static.pe import PEFile
 from ..static.office import OfficeDocument
+from ..static.pdf import PDFFile
 from ..errors import StaticAnalysisError
 
 class AnubiAnalysis(Processor):
@@ -45,7 +46,9 @@ class FileInfoGather(Processor):
           ".ppsx", ".sldx", ".sldm",
         # Excel
           "xls", "xlsm", "xlsx", "xlm", "xlt", "xltx", "xltm",
-          "xlsb", "xla", "xlam", "xll", "xlw",): (OfficeDocument, "office")
+          "xlsb", "xla", "xlam", "xll", "xlw",): (OfficeDocument, "office"),
+        # PDF
+        (".pdf"): (PDFFile, "pdf")
     }
 
     def start(self):

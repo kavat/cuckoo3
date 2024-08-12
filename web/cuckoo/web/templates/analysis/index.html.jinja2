@@ -170,6 +170,13 @@
           </div>
         {% endif %}
 
+        {# tab: pre.static.pdf #}
+        {% if pre.static and pre.static.pdf %}
+          <div role="region" id="pdffiles" hidden>
+            {% include "analysis/components/pdffiles.html.jinja2" %}
+          </div>
+        {% endif %}
+
       </section>
     </div>
   </div>

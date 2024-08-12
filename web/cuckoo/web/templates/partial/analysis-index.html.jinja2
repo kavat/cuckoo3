@@ -15,6 +15,11 @@
                 <a role="tab" href="#anubi">Anubi</a>
               </li>
             {% endif %}
+            {% if pre.static and pre.static.pdf %}
+              <li>
+                <a role="tab" href="#pdffiles">PDF File</a>
+              </li>
+            {% endif %}
             {% if pre.static and pre.static.pe %}
               <li>
                 <a role="tab" href="#pefiles">PE File</a>
