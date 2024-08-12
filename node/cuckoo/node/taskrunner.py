@@ -245,9 +245,9 @@ class _FlowRunner(Thread):
         # Task flow can now prepare the machine
         self.taskflow.log.debug("Agent online")
 
-        self.taskflow.log.debug("VNC installation in progress")
-        ret_vnc = InstallVNC(self.machine.ip, self.machine.agent_port)
-        self.taskflow.log.debug("VNC installation status: {}".format(ret_vnc))
+        #self.taskflow.log.debug("VNC installation in progress")
+        #ret_vnc = InstallVNC(self.machine.ip, self.machine.agent_port)
+        #self.taskflow.log.debug("VNC installation status: {}".format(ret_vnc))
 
         # Request rooter to apply route if we received a rooter path and the
         # current task has a route.

@@ -138,7 +138,7 @@ as cuckoo user
 ```bash
 su - cuckoo
 /opt/cuckoo3/venv/bin/vmcloak --debug init --win10x64 --hddsize 128 --cpus 2 --ramsize 4096 --network 192.168.30.0/24 --vm qemu --ip 192.168.30.2 --iso-mount /mnt/win10x64 win10base br0
-/opt/cuckoo3/venv/bin/vmcloak --debug install win10base dotnet:4.7.2 java:7u80 vcredist:2013 vcredist:2019 edge carootcert adobepdf wallpaper disableservices
+/opt/cuckoo3/venv/bin/vmcloak --debug install win10base dotnet:4.7.2 java:8u151 vcredist:2013 vcredist:2019 edge carootcert adobepdf tightvnc wallpaper disableservices
 /opt/cuckoo3/venv/bin/vmcloak --debug snapshot --count 1 win10base win10vm_192.168.30.2
 ```
 
