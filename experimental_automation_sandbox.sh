@@ -199,4 +199,16 @@ systemctl restart nginx uwsgi
 # Check if /home/cuckoo/.cuckoocwd/conf/cuckoo.yaml is ok
 # Check if /home/cuckoo/.cuckoocwd/conf/web/web.yaml is ok
 
+echo '#!/bin/bash
+su - cuckoo -c "cd /opt/cuckoo3 && git pull" && systemctl restart uwsgi' > /usr/local/bin/pull_cuckoo3
+chmod +x /usr/local/bin/pull_cuckoo3
+
+echo '#!/bin/bash
+su - cuckoo -c "cd /opt/vmcloak && git pull && /opt/cuckoo3/venv/bin/pip install ."' > /usr/local/bin/pull_vmcloak
+chmod +x /usr/local/bin/pull_vmcloak
+
+echo '#!/bin/bash
+su - cuckoo -c "cd /opt/anubi && git pull" && systemctl restart uwsgi' > /usr/local/bin/pull_anubi
+chmod +x /usr/local/bin/pull_anubi
+
 start_cuckoo
