@@ -1,0 +1,28 @@
+{% call ui_box(title="Strings found in file", has_padding=False) %}
+  <table class="table has-striped-rows">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Email</td>
+        <td>{{ pre.strings.occurrences.email }}</td>
+      </tr>
+      <tr>
+        <td>IP</td>
+        <td>{{ pre.strings.occurrences.ipv4 }}</td>
+      </tr>
+      <tr>
+        <td>Packer</td>
+        <td>{{ pre.strings.occurrences.packer }}</td>
+      </tr>
+      <tr>
+        <td>URL</td>
+        <td>{{ pre.strings.occurrences.url }}</td>
+      </tr>
+    </tbody>
+  </table>
+{% endcall %}

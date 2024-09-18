@@ -177,6 +177,18 @@
           </div>
         {% endif %}
 
+        {# tab: pre.strings #}
+        {% if pre.strings %}
+          <div role="region" id="strings" hidden>
+            {% include "analysis/components/strings.html.jinja2" %}
+          </div>
+        {% endif %}
+
+        {# tab: pre.report #}
+        <div role="region" id="report" hidden>
+          {% include "analysis/components/report.html.jinja2" %}
+        </div>
+
       </section>
     </div>
   </div>

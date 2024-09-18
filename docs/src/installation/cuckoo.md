@@ -12,7 +12,12 @@ This page describes the steps required to install Cuckoo. Cuckoo can be set up i
 
 Ubuntu 22 has been tested as deployment OS
 
-### Installing Cuckoo
+### Installing Cuckoo automatically
+
+experimental_automation_sandbox.sh script has been created to automize installation or to be more clear installation flow and steps.
+Suggestion is to execute script experimental_automation_sandbox.sh with block method in order to control installation process.
+
+### Installing Cuckoo manually
 
 The following steps are for a normal/generic Cuckoo setup. This is the type of setup fits the most scenarios.
 

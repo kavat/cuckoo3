@@ -1,0 +1,104 @@
+  <table class="table has-striped-rows">
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="no-line-break"><strong>Category</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.category }}</td>
+      </tr>
+      {% if analysis.submitted.category != 'url' %}
+        <tr>
+          <td class="no-line-break"><strong>File name</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.filename }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Size</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.size | filesizeformat }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Type</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.type }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Media Type</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.media_type }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>MD5</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.md5 }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>SHA1</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.sha1 }}</td>
+        </tr>
+          <td class="no-line-break"><strong>MD5</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.md5 }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>SHA1</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.sha1 }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>SHA256</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.sha256 }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>SHA512</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.sha512 }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td class="no-line-break"><strong>URL</strong></td>
+          <td class="has-line-break">{{ analysis.submitted.url }}</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+        {% if pre.strings %}
+          {% include "analysis/components/strings.html.jinja2" %}
+        {% endif %}
+
+        {% if pre.static and pre.static.pe %}
+          {% include "analysis/components/pefiles.html.jinja2" %}
+        {% endif %}
+
+        {% if pre.virustotal %}
+          {% include "analysis/components/virustotal.html.jinja2" %}
+        {% endif %}
+
+        {% if pre.irma is defined %}
+          {% if pre.irma %}
+            {% include "analysis/components/irma.html.jinja2" %}
+          {% endif %}
+        {% endif %}
+
+        {% if pre.mhr is defined %}
+          {% if pre.mhr.antivirus_detection_rate %}
+            {% include "analysis/components/mhr.html.jinja2" %}
+          {% endif %}
+        {% endif %}
+
+        {% if pre.misp %}
+          {% include "analysis/components/misp.html.jinja2" %}
+        {% endif %}
+
+        {% if pre.intelmq %}
+          {% include "analysis/components/intelmq.html.jinja2" %}
+        {% endif %}
+
+        {% if pre.static and pre.static.office %}
+          {% include "analysis/components/office.html.jinja2" %}
+        {% endif %}
+
+        {% if pre.anubi %}
+          {% include "analysis/components/anubi.html.jinja2" %}
+        {% endif %}
+
+        {% if pre.static and pre.static.pdf %}
+          {% include "analysis/components/pdffiles.html.jinja2" %}
+        {% endif %}

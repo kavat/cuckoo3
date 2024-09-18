@@ -8,9 +8,25 @@ from cuckoo.common.external_interactions import anubi_analyze_single_file
 
 from ..abtracts import Processor
 from ..static.pe import PEFile
+from ..static.strings_analysis import StringsDetonation
 from ..static.office import OfficeDocument
 from ..static.pdf import PDFFile
 from ..errors import StaticAnalysisError
+
+class StringsAnalysis(Processor):
+
+    CATEGORY = ["file"]
+    KEY = "strings"
+
+    def start(self):
+        target = self.ctx.result.get("target")
+
+        file_path, _ = Binaries.path(Paths.binaries(), target.sha256)
+        if os.path.getsize(file_path) < 1:
+            return {}
+
+        return StringsDetonation(file_path)
+
 
 class AnubiAnalysis(Processor):
 

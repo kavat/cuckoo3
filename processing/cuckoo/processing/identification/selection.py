@@ -253,11 +253,6 @@ class SelectFile(Processor):
                     files=", ".join(f.filename for f in unidentified)
                 )
 
-        #uploaded_filepath, _ = Binaries.path(
-        #    Paths.binaries(), target.sha256
-        #)
-        #_write_anubi(self.ctx.analysis.id, anubi_analyze_single_file(uploaded_filepath))
-
         return {
             "identified": target.identified,
             "selected": target.selected,
