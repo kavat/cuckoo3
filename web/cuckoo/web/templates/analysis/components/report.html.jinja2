@@ -1,3 +1,22 @@
+<button onclick="downloadMyElement()">Download</button>
+
+<script>
+function downloadMyElement() {
+  var MyElement = document.getElementById('report_exportable').innerHTML;
+  console.log(MyElement);
+  var filename = "report.html";
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(MyElement));
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+
+}
+</script>
+
+<div id="report_exportable">
   <table class="table has-striped-rows">
     <thead>
       <tr>
@@ -28,13 +47,6 @@
           <td class="has-line-break">{{ analysis.submitted.media_type }}</td>
         </tr>
         <tr>
-          <td class="no-line-break"><strong>MD5</strong></td>
-          <td class="has-line-break">{{ analysis.submitted.md5 }}</td>
-        </tr>
-        <tr>
-          <td class="no-line-break"><strong>SHA1</strong></td>
-          <td class="has-line-break">{{ analysis.submitted.sha1 }}</td>
-        </tr>
           <td class="no-line-break"><strong>MD5</strong></td>
           <td class="has-line-break">{{ analysis.submitted.md5 }}</td>
         </tr>
@@ -102,3 +114,4 @@
         {% if pre.static and pre.static.pdf %}
           {% include "analysis/components/pdffiles.html.jinja2" %}
         {% endif %}
+</div>
