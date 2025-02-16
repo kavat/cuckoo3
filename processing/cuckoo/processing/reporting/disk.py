@@ -37,7 +37,7 @@ class JSONDump(Reporter):
 
     def report_pre_analysis(self):
         include_result = [
-            "virustotal", "irma", "static", "misp", "intelmq", "command", "anubi"
+            "virustotal", "irma", "static", "misp", "intelmq", "command", "anubi", "strings"
         ]
 
         # Pre might change settings such as launch args for specific chosen
