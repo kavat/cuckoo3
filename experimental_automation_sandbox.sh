@@ -4,7 +4,66 @@ echo "deb [signed-by=/usr/share/keyrings/elastic.gpg] https://artifacts.elastic.
 
 # Installing mandatory packages
 apt-get update && apt-get upgrade -y
-apt-get install git build-essential python3-dev python3.10-venv libhyperscan5 libhyperscan-dev libjpeg8-dev zlib1g-dev unzip p7zip-full rar unace-nonfree cabextract yara tcpdump genisoimage qemu-system-x86 qemu-utils qemu-system-common uwsgi uwsgi-plugin-python3 nginx elasticsearch libcairo2-dev libjpeg-turbo8-dev libpng-dev libtool-bin libossp-uuid-dev libvncserver-dev freerdp2-dev libssh2-1-dev libtelnet-dev libwebsockets-dev libpulse-dev libvorbis-dev libwebp-dev libssl-dev libpango1.0-dev libswscale-dev libavcodec-dev libavutil-dev libavformat-dev tomcat9 tomcat9-admin tomcat9-common tomcat9-user mariadb-server nmap -y
+apt-get install iptables git build-essential python3-dev python3.10-venv libhyperscan5 libhyperscan-dev libjpeg8-dev zlib1g-dev unzip p7zip-full rar unace-nonfree cabextract yara tcpdump genisoimage qemu-system-x86 qemu-utils qemu-system-common uwsgi uwsgi-plugin-python3 nginx elasticsearch libcairo2-dev libjpeg-turbo8-dev libpng-dev libtool-bin libossp-uuid-dev libvncserver-dev freerdp2-dev libssh2-1-dev libtelnet-dev libwebsockets-dev libpulse-dev libvorbis-dev libwebp-dev libssl-dev libpango1.0-dev libswscale-dev libavcodec-dev libavutil-dev libavformat-dev tomcat9 tomcat9-admin tomcat9-common tomcat9-user mariadb-server nmap python3-enchant -y
+
+# Creating script to access internet from sandbox virtual machine
+echo '# Create script for internet access
+#!/bin/sh
+# Copyright (C) 2014-2015 Jurriaan Bremer.
+# This file is part of VMCloak - http://www.vmcloak.org/.
+# See the file 'docs/LICENSE.txt' for copying permission.
+
+# Credits to Mark Schloesser, https://github.com/rep/cuckoo-contrib
+
+if [ "$1" = "-h" ]; then
+    echo "Usage: $0 [ip_range/cidr] [interfaces..]"
+    echo "  $0 192.168.31.0/24 eth0 eth1"
+    echo
+    echo "Defaults to:"
+    echo "  $0 192.168.30.0/24 ens18"
+    exit
+fi
+
+# Fetch the IP range and CIDR.
+if [ "$#" -ne 0 ]; then
+    VBOXNET="$1"
+    shift
+else
+    VBOXNET="192.168.30.0/24"
+fi
+
+# Fetch the interfaces.
+if [ "$#" -ne 0 ]; then
+    INTERFACES="$*"
+else
+    INTERFACES="ens18"
+fi
+
+iptables -F
+iptables -t nat -F
+
+for i in $INTERFACES; do
+    iptables -t nat -A POSTROUTING -o $i -s "$VBOXNET" -j MASQUERADE
+done
+
+# Default drop.
+iptables -P FORWARD DROP
+
+# Existing connections.
+iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# Accept connections from vboxnet to the whole internet.
+iptables -A FORWARD -s "$VBOXNET" -j ACCEPT
+
+# Internal traffic.
+iptables -A FORWARD -s $VBOXNET -d $VBOXNET -j ACCEPT
+
+# Log stuff that reaches this point, could be noisy though.
+iptables -A FORWARD -j LOG
+
+# Actually enable forwarding of packets. This is Debian/Ubuntu specific.
+echo 1 > /proc/sys/net/ipv4/ip_forward' > /usr/local/bin/to_internet.sh
+chmod +x /usr/local/bin/to_internet.sh
 
 # Adding cuckoo user and providing necessary permissions
 useradd cuckoo
@@ -116,7 +175,7 @@ echo '#!/bin/bash
 chmod 666 /dev/kvm
 /opt/cuckoo3/venv/bin/vmcloak-qemubridge br0 192.168.30.1/24
 chmod u+s /usr/lib/qemu/qemu-bridge-helper
-su - cuckoo -c "/opt/cuckoo3/venv/bin/cuckoo --debug --cancel-abandoned"' >> /usr/local/bin/start_cuckoo
+su - cuckoo -c "/opt/cuckoo3/venv/bin/cuckoo --debug --cancel-abandoned"' > /usr/local/bin/start_cuckoo
 chmod +x /usr/local/bin/start_cuckoo
 
 # Creating bridge first time
@@ -129,9 +188,9 @@ chmod u+s /usr/lib/qemu/qemu-bridge-helper
 mkdir /mnt/win10x64
 sudo -u cuckoo /opt/cuckoo3/venv/bin/vmcloak isodownload --win10x64 --download-to /home/cuckoo/win10x64.iso
 mount -o loop,ro /home/cuckoo/win10x64.iso /mnt/win10x64
-sudo -u cuckoo /opt/cuckoo3/venv/bin/vmcloak --debug init --win10x64 --hddsize 128 --cpus 2 --ramsize 4096 --network 192.168.30.0/24 --vm qemu --ip 192.168.30.2 --iso-mount /mnt/win10x64 win10base br0
-sudo -u cuckoo /opt/cuckoo3/venv/bin/vmcloak --debug install win10base dotnet:4.7.2 java:8u151 vcredist:2013 vcredist:2019 carootcert firefox tightvnc wallpaper uninstallsw disableservices
-sudo -u cuckoo /opt/cuckoo3/venv/bin/vmcloak --debug snapshot --count 1 win10base win10vm_192.168.30.2
+su - cuckoo -c "/opt/cuckoo3/venv/bin/vmcloak --debug init --win10x64 --hddsize 128 --cpus 2 --ramsize 4096 --network 192.168.30.0/24 --vm qemu --ip 192.168.30.2 --iso-mount /mnt/win10x64 win10base br0"
+su - cuckoo -c "/opt/cuckoo3/venv/bin/vmcloak --debug install win10base carootcert wic dotnet:3.5 dotnet:4.7.2 java:8u151 vcredist:2013 vcredist:2019 firefox tightvnc wallpaper uninstallsw disableservices"
+su - cuckoo -c "/opt/cuckoo3/venv/bin/vmcloak --debug snapshot --count 1 win10base win10vm_192.168.30.2"
 
 # Importing created VM into cuckoo3
 sudo -u cuckoo /opt/cuckoo3/venv/bin/cuckoo machine import qemu /home/cuckoo/.vmcloak/vms/qemu
