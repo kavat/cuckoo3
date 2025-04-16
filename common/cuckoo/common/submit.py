@@ -190,6 +190,8 @@ class SettingsVerifier:
                 error_list.append("Route type cannot be empty")
                 continue
 
+            # ANDREA: forcing platform
+            platform.platform = "windows"
             has_platform, has_route, info = nodeinfos.find_support(
                 platform, route
             )

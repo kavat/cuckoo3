@@ -117,6 +117,13 @@
           </div>
         {% endif %}
 
+        {# tab: static.elf #}
+        {% if pre.static and pre.static.elf and pre.static.elf.elf_analysis %}
+          <div role="region" id="elffiles" hidden>
+            {% include "analysis/components/elffiles.html.jinja2" %}
+          </div>
+        {% endif %}
+
         {# tab: static.virustotal #}
         {% if pre.virustotal %}
           <div role="region" id="virus-total" hidden>

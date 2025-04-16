@@ -96,6 +96,8 @@ class Submit(View):
     def post(self, request):
         uploaded = request.FILES.get("file")
         url = request.POST.get("url")
+        localfile = request.POST.get("localfile")
+
         if url:
             try:
                 url = _validate_website_url(request.POST.get("url"))
@@ -104,30 +106,40 @@ class Submit(View):
                     request, template_name="submit/index.html.jinja2",
                     status=400, context={"error": str(e)}
                 )
-        if not uploaded and not url:
+        if not uploaded and not url and not localfile:
             return HttpResponseBadRequest()
 
-        try:
-            s_maker = submit.settings_maker.new_settings()
-            s_maker.set_manual(True)
+        print(f"URL: {url}")
+        print(f"uploaded: {uploaded}")
+        print(f"localfile: {localfile}")
+        if uploaded or localfile or url:
+            try:
+                s_maker = submit.settings_maker.new_settings()
+                s_maker.set_manual(True)
 
-            password = request.POST.get("password")
-            if password:
-                s_maker.set_password(password)
+                password = request.POST.get("password")
+                if password:
+                    s_maker.set_password(password)
 
-            settings = s_maker.make_settings()
-            if uploaded:
-                analysis_id = submit.file(
-                    uploaded.temporary_file_path(), settings,
-                    file_name=uploaded.name
+                settings = s_maker.make_settings()
+                if uploaded:
+                    analysis_id = submit.file(
+                        uploaded.temporary_file_path(), settings,
+                        file_name=uploaded.name
+                    )
+                elif localfile:
+                    analysis_id = submit.file(
+                        localfile, settings,
+                        file_name=localfile.split("/")[-1]
+                    )
+                else:
+                    analysis_id = submit.url(url, settings)
+            except submit.SubmissionError as e:
+               
+                return render(
+                    request, template_name="submit/index.html.jinja2",
+                    status=400, context={"error": str(e)}
                 )
-            else:
-                analysis_id = submit.url(url, settings)
-        except submit.SubmissionError as e:
-            return render(
-                request, template_name="submit/index.html.jinja2",
-                status=400, context={"error": str(e)}
-            )
 
         try:
             submit.notify()

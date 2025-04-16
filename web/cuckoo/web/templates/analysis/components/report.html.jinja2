@@ -79,6 +79,10 @@ function downloadMyElement() {
           {% include "analysis/components/pefiles.html.jinja2" %}
         {% endif %}
 
+        {% if pre.static and pre.static.elf and pre.static.elf.elf_analysis %}
+          {% include "analysis/components/elffiles.html.jinja2" %}
+        {% endif %}
+
         {% if pre.virustotal %}
           {% include "analysis/components/virustotal.html.jinja2" %}
         {% endif %}

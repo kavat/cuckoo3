@@ -79,6 +79,8 @@ def _make_task_dirs(task_id):
         os.mkdir(dirpath)
 
 def _create_task(nodes_tracker, analysis, task_number, platform_obj):
+    # ANDREA: forcing platform
+    platform_obj.platform = "windows"
     route = platform_obj.settings.route or analysis.settings.route
     has_platform, has_route, _ = nodes_tracker.nodeinfos.find_support(
         platform_obj, route

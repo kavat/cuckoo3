@@ -11,6 +11,7 @@ from ..static.pe import PEFile
 from ..static.strings_analysis import StringsDetonation
 from ..static.office import OfficeDocument
 from ..static.pdf import PDFFile
+from ..static.elf import ElfFile
 from ..errors import StaticAnalysisError
 
 class StringsAnalysis(Processor):
@@ -64,7 +65,8 @@ class FileInfoGather(Processor):
           "xls", "xlsm", "xlsx", "xlm", "xlt", "xltx", "xltm",
           "xlsb", "xla", "xlam", "xll", "xlw",): (OfficeDocument, "office"),
         # PDF
-        (".pdf"): (PDFFile, "pdf")
+        (".pdf"): (PDFFile, "pdf"),
+        (".elf"): (ElfFile, "elf")
     }
 
     def start(self):

@@ -18,16 +18,16 @@ class URLSubmission(serializers.Serializer):
     url = serializers.URLField(help_text="A URL to analyze")
     settings = serializers.JSONField(help_text="A settings dictionary")
 
-
 class SubmitFile(APIView):
 
     serializer_class = FileSubmission
     parser_classes = [MultiPartParser]
 
     def post(self, request):
+
         serializer = FileSubmission(data=request.data)
         if not serializer.is_valid():
-            return Response(serializer.errors, status=400)
+            return Response(serializer.errors, status=411)
 
         uploaded = request.FILES["file"]
         req_settings = serializer.data["settings"]
@@ -42,7 +42,7 @@ class SubmitFile(APIView):
                 file_name=uploaded.name
             )
         except submit.SubmissionError as e:
-            return Response({"error": str(e)}, status=400)
+            return Response({"error": str(e)}, status=412)
 
         try:
             submit.notify()
@@ -67,7 +67,7 @@ class SubmitURL(APIView):
     def post(self, request):
         serializer = URLSubmission(data=request.data)
         if not serializer.is_valid():
-            return Response(serializer.errors, status=400)
+            return Response(serializer.errors, status=421)
 
         url = request.data["url"]
         req_settings = serializer.data["settings"]
@@ -79,7 +79,7 @@ class SubmitURL(APIView):
             final_settings = s_maker.make_settings()
             analysis_id = submit.url(url, final_settings)
         except submit.SubmissionError as e:
-            return Response({"error": str(e)}, status=400)
+            return Response({"error": str(e)}, status=422)
 
         try:
             submit.notify()
