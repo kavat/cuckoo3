@@ -165,6 +165,14 @@ class MSIFile:
       )
       return [{'error': f"{err}. Handler: {handler}. Error: {e}"}]
 
+  def get_certificates_signatures(self):
+    print(f"-----------------> /bin/bash /opt/cuckoo3/scripts/check_signature.sh {self._filepath}")
+    output, err = self.run_cmd(['/bin/bash', '/opt/cuckoo3/scripts/check_signature.sh', self._filepath])
+    print(output)
+    print(err)
+    lines = output.splitlines()
+    return '<br>'.join(lines)
+
   def __init__(self, filepath):
     self._filepath = filepath
 
@@ -172,6 +180,7 @@ class MSIFile:
     return {
       "content": self.get_msi_content(self._filepath, {}, True, True),
       "streams": self.parse_streams_listing(self.extract_msi_streams(self._filepath)),
-      "suspicious_strings": self.search_suspicious_content(self._filepath),
-      "custom_actions": self.extract_custom_actions_msiinfo(self._filepath)
+      #"suspicious_strings": self.search_suspicious_content(self._filepath),
+      "custom_actions": self.extract_custom_actions_msiinfo(self._filepath),
+      "certificates": self.get_certificates_signatures() 
     }

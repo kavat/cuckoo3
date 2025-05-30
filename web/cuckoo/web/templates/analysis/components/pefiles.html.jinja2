@@ -13,6 +13,31 @@
     {% endcall %}
   </div>
 </div>
+{# PE General Data #}
+{% if pre.static.pe and (pre.static.pe.peid_signatures or pre.static.pe.pe_versioninfo) %}
+  {% call ui_box(title="PE General Data", has_padding=False) %}
+    <table class="table has-striped-rows">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="no-line-break"><strong>PE ID signatures</strong></td>
+          <td class="has-line-break">{{ pre.static.pe.peid_signatures }}</td>
+        </tr>
+        {% for detailed in pre.static.pe.pe_versioninfo %}
+        <tr>
+          <td class="no-line-break"><strong>{{ detailed['name'] }}</strong></td>
+          <td class="has-line-break">{{ detailed['value'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endcall %}
+{% endif %}
 {# PE Sections #}
 {% call ui_box(title="PE Sections", has_padding=False) %}
   {{ render_table(

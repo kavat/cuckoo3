@@ -47,6 +47,15 @@
   </table>
 {% endcall %}
 
+{# PE Certificate Chain check #}
+{% call ui_box(title="PE Certificate Chain check", has_padding=False) %}
+  {% if pre.static.msi.certificates %}
+    <p class="has-padding no-margin">{{ pre.static.msi.certificates|safe }}</p>
+  {% else %}
+    <p class="has-padding no-margin">Not found</p>
+  {% endif %}
+{% endcall %}
+
 {% for elem in pre.static.msi.content.filenames %}
   {% call ui_box(title=elem['name'], has_padding=False) %}
     <table class="table has-striped-rows">
@@ -108,19 +117,51 @@
         {% if 'strings' in elem %}
         <tr>
           <td>Email</td>
-          <td>{{ elem.strings.occurrences.email }}</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.email %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
         </tr>
         <tr>
           <td>IP</td>
-          <td>{{ elem.strings.occurrences.ipv4 }}</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.ipv4 %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
         </tr>
         <tr>
           <td>Packer</td>
-          <td>{{ elem.strings.occurrences.packer }}</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.packer %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
         </tr>
         <tr>
           <td>URL</td>
-          <td>{{ elem.strings.occurrences.url }}</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.url %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <td>MAC</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.mac %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <td>Suspicious strings</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.suspicious_strings %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
         </tr>
         {% endif %}
       </tbody>

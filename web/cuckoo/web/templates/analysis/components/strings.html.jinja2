@@ -9,19 +9,51 @@
     <tbody>
       <tr>
         <td>Email</td>
-        <td>{{ pre.strings.occurrences.email }}</td>
+        <td>
+          {% for stringa in pre.strings.occurrences.email %}
+            {{ stringa }}<br>
+          {% endfor %}
+        </td>
       </tr>
       <tr>
         <td>IP</td>
-        <td>{{ pre.strings.occurrences.ipv4 }}</td>
+        <td>
+          {% for stringa in pre.strings.occurrences.ipv4 %}
+            {{ stringa }}<br>
+          {% endfor %}
+        </td>
       </tr>
       <tr>
         <td>Packer</td>
-        <td>{{ pre.strings.occurrences.packer }}</td>
+        <td>
+          {% for stringa in pre.strings.occurrences.packer %}
+            {{ stringa }}<br>
+          {% endfor %}
+        </td>
       </tr>
       <tr>
         <td>URL</td>
-        <td>{{ pre.strings.occurrences.url }}</td>
+        <td>
+          {% for stringa in pre.strings.occurrences.url %}
+            {{ stringa }}<br>
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <td>MAC</td>
+        <td>
+          {% for stringa in pre.strings.occurrences.mac %}
+            {{ stringa }}<br>
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <td>Suspicious strings</td>
+        <td>
+          {% for stringa in pre.strings.occurrences.suspicious_strings %}
+            {{ stringa }}<br>
+          {% endfor %}
+        </td>
       </tr>
     </tbody>
   </table>
