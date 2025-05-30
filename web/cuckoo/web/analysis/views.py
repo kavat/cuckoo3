@@ -13,6 +13,13 @@ from ipware import get_client_ip
 from cuckoo.common.config import cfg
 
 
+SUSPICIOUS_FUNCS = [
+    'system', 'execve', 'popen', 'fork', 'vfork', 'clone',
+    'socket', 'connect', 'send', 'recv', 'bind', 'listen',
+    'dlopen', 'dlsym', 'mprotect', 'ptrace',
+    'open', 'read', 'write', 'unlink', 'chmod', 'fchmod', 'chown',
+]
+
 def index(request, analysis_id):
     try:
         result = retriever.get_analysis(
@@ -52,11 +59,27 @@ def index(request, analysis_id):
                 if ip_address(ip) in network:
                     isAllowed = True
 
+    pre_postanalysis = pre.to_dict()
+    if 'static' in pre_postanalysis and 'elf' in pre_postanalysis['static'] and 'elf_analysis' in pre_postanalysis['static']['elf']:
+      for tag in ['sections','program_header']:
+        for k,v in enumerate(pre_postanalysis['static']['elf']['elf_analysis'][tag]):
+          suspected = 'X' in v['Flags'] and 'W' in v['Flags']
+          pre_postanalysis['static']['elf']['elf_analysis'][tag][k]['Suspected'] = str(suspected)
+      for tag in ['dynamic_symbols','functions']:
+        for k,v in enumerate(pre_postanalysis['static']['elf']['elf_analysis'][tag]):
+          func_name = ""
+          if 'Name' in v and tag == 'dynamic_symbols':
+            func_name = v['Name']
+          if 'Function' in v and tag == 'functions':
+            func_name = v['Function']
+          suspected = func_name.split('@')[0] in SUSPICIOUS_FUNCS
+          pre_postanalysis['static']['elf']['elf_analysis'][tag][k]['Suspected'] = str(suspected)
+
     return render(
         request, template_name="analysis/index.html.jinja2",
         context={
              "analysis": analysis.to_dict(),
-             "pre": pre.to_dict(),
+             "pre": pre_postanalysis,
              "analysis_id": analysis_id,
              "filedownload_allowed": isAllowed
              }

@@ -9,7 +9,7 @@ These are the generic packages mandatory to start operations
 ```bash
 apt-get update
 apt-get upgrade -y
-apt-get install -y git build-essential python3-dev python3.10-venv libhyperscan5 libhyperscan-dev libjpeg8-dev zlib1g-dev unzip p7zip-full rar unace-nonfree cabextract yara tcpdump genisoimage qemu-system-x86 qemu-utils qemu-system-common uwsgi uwsgi-plugin-python3 nginx libcairo2-dev libjpeg-turbo8-dev libpng-dev libtool-bin libossp-uuid-dev libvncserver-dev freerdp2-dev libssh2-1-dev libtelnet-dev libwebsockets-dev libpulse-dev libvorbis-dev libwebp-dev libssl-dev libpango1.0-dev libswscale-dev libavcodec-dev libavutil-dev libavformat-dev nmap python3-enchant -y
+apt-get install -y binutils build-essential cabextract freerdp2-dev genisoimage git libavcodec-dev libavformat-dev libavutil-dev libcairo2-dev libhyperscan-dev libhyperscan5 libjpeg-turbo8-dev libjpeg8-dev libossp-uuid-dev libpango1.0-dev libpng-dev libpulse-dev libssh2-1-dev libssl-dev libswscale-dev libtelnet-dev libtool-bin libvncserver-dev libvorbis-dev libwebp-dev libwebsockets-dev msitools nginx nmap osslsigncode p7zip-full python3-dev python3-enchant python3.10-venv qemu-system-common qemu-system-x86 qemu-utils rar tcpdump unace-nonfree unzip upx uwsgi uwsgi-plugin-python3 yara zlib1g-dev
 ```
 
 ### Elasticsearch
@@ -42,7 +42,7 @@ systemctl restart elasticsearch
 Guacamole is used to access VM during detonation in order to increase analysis deph.
 
 ```bash
-apt-get install -y apt-get install -y tomcat9 tomcat9-admin tomcat9-common tomcat9-user mariadb-server
+apt-get install -y tomcat9 tomcat9-admin tomcat9-common tomcat9-user mariadb-server
 cd /tmp
 wget https://downloads.apache.org/guacamole/1.5.5/source/guacamole-server-1.5.5.tar.gz
 wget https://downloads.apache.org/guacamole/1.5.5/binary/guacamole-1.5.5.war

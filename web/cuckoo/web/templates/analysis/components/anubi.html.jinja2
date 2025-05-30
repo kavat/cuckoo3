@@ -13,11 +13,17 @@
         <td>Hash</td>
         <td>{{ pre.anubi.hash_scan }}</td>
       </tr>
-      {% for m in pre.anubi.yara_scan %}
+      <tr>
         <td>{{ pre.anubi.file }}</td>
         <td>Yara</td>
-        <td>{{ m }}</td>
-      {% endfor %}
+        <td>
+          <ul>
+          {% for m in pre.anubi.yara_scan %}
+            <li> {{ m }}</li>
+          {% endfor %}
+          </ul>
+        </td>
+      </tr>
     </tbody>
   </table>
 {% endcall %}

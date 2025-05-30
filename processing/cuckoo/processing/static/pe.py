@@ -5,6 +5,7 @@ import base64
 import binascii
 import codecs
 import os.path
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -209,6 +210,7 @@ class PEFile:
     _peid_sigdb = None
 
     def __init__(self, filepath):
+        self.filepath_orig = filepath
         self._path = Path(filepath)
         if not self._path.exists():
             raise PEStaticAnalysisError(f"Path {filepath} does not exist")
@@ -231,6 +233,22 @@ class PEFile:
             return False
 
         return True
+
+    def get_certificates_signatures(self):
+        if not self.is_signed():
+            return "File not signed"
+
+        print(f"-----------------> /bin/bash /opt/cuckoo3/scripts/check_signature.sh {self.filepath_orig}")
+        print(f"-----------------> /bin/bash /opt/cuckoo3/scripts/check_signature.sh {self._path}")
+        output, err = self.run_cmd(['/bin/bash', '/opt/cuckoo3/scripts/check_signature.sh', self.filepath_orig])
+        print(output)
+        print(err)
+        lines = output.splitlines()
+        return '<br>'.join(lines)
+
+    def run_cmd(self, cmd_list):
+        result = subprocess.run(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return (result.stdout.decode(errors='ignore'), result.stderr.decode(errors='ignore'))
 
     def get_certificates(self):
         if not self.is_signed():
@@ -308,6 +326,7 @@ class PEFile:
                     "name": section.Name.strip(b"\x00").decode(
                         errors="replace"
                     ),
+                    "writeble": str(section.IMAGE_SCN_MEM_WRITE), 
                     "virtual_address": f"{section.VirtualAddress:#010x}",
                     "virtual_size": f"{section.Misc_VirtualSize:#010x}",
                     "size_of_data": f"{section.SizeOfRawData:#010x}",
@@ -455,4 +474,5 @@ class PEFile:
             "pe_imphash": self.get_imphash(),
             "pe_timestamp": self.get_compile_timestamp(),
             "signatures": self.get_certificates(),
+            "certificates": self.get_certificates_signatures()
         }

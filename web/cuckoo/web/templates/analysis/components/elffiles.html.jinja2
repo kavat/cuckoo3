@@ -1,0 +1,121 @@
+{% call ui_box(title="ELF file", has_padding=False) %}
+  <table class="table has-striped-rows">
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="no-line-break"><strong>Category</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.category }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>File name</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.filename }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Size</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.size | filesizeformat }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Type</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.type }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Media Type</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.media_type }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>MD5</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.md5 }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>SHA1</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.sha1 }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>SHA256</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.sha256 }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>SHA512</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.sha512 }}</td>
+      </tr>
+      {% for k, v in pre.static.elf.elf_analysis.headers.items() %}
+      <tr>
+        <td class="no-line-break"><strong>{{ k }}</strong></td>
+        <td class="has-line-break">{{ v }}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td class="no-line-break"><strong>Shared Libraries</strong></td>
+        <td class="has-line-break">{{ ', '.join(pre.static.elf.elf_analysis.shared_libraries) }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Packer</strong></td>
+        <td class="has-line-break">{{ pre.static.elf.elf_analysis.packer_info.Packer }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Suspicious APIs</strong></td>
+        <td class="has-line-break">{{ pre.static.elf.elf_analysis.suspicious_api }}</td>
+      </tr>
+    </tbody>
+  </table>
+{% endcall %}
+
+{# ELF Program Headers #}
+{% call ui_box(title="ELF Program Headers", has_padding=False) %}
+  {{ render_table(
+      data=pre.static.elf.elf_analysis.program_header,
+      cols=["Type","Offset","Virtual Address","Physical Address","File Size","Flags","Suspected"],
+      labels=["Type","Offset","Virtual Address","Physical Address","File Size","Flags","Suspected"],
+      style=["is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace"],
+      has_sticky_header=True,
+  )}}
+{% endcall %}
+
+{# ELF Sections #}
+{% call ui_box(title="ELF Sections", has_padding=False) %}
+  {{ render_table(
+      data=pre.static.elf.elf_analysis.sections,
+      cols=["Name","Address","Entry Size","Size","Flags","Entropy","Suspected"],
+      labels=["Name", "Address","Entry Size","Size", "Flags", "Entropy", "Suspected"],
+      style=["is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace"],
+      has_sticky_header=True,
+  )}}
+{% endcall %}
+
+{# ELF Dynamic Symbols #}
+{% call ui_box(title="ELF Dynamic Symbols", has_padding=False) %}
+  {{ render_table(
+      data=pre.static.elf.elf_analysis.dynamic_symbols,
+      cols=["Name","Offset Value", "Size","Symbol Binding","Visibility","Section Index","Suspected"],
+      labels=["Name", "Offset Value","Size","Symbol Binding", "Visibility", "Section Index", "Suspected"],
+      style=["is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace"],
+      has_sticky_header=True,
+  )}}
+{% endcall %}
+
+{# ELF Functions #}
+{% call ui_box(title="ELF Functions", has_padding=False) %}
+  {{ render_table(
+      data=pre.static.elf.elf_analysis.functions,
+      cols=["Function","Offset Value","Suspected"],
+      labels=["Name", "Offset Value", "Suspected"],
+      style=["is-monospace","is-monospace","is-monospace"],
+      has_sticky_header=True,
+  )}}
+{% endcall %}
+
+{# ELF Variable Data #}
+{% call ui_box(title="ELF Variable Data", has_padding=False) %}
+  {{ render_table(
+      data=pre.static.elf.elf_analysis.variable_data,
+      cols=["Variable Name", "Address", "Size", "Hex Dump", "ASCII Dump"],
+      labels=["Name",        "Address", "Size", "Hex Dump", "ASCII Dump"],
+      style=["is-monospace","is-monospace","is-monospace","is-monospace"],
+      has_sticky_header=True,
+  )}}
+{% endcall %}

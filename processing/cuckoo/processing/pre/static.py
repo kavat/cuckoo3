@@ -12,6 +12,7 @@ from ..static.strings_analysis import StringsDetonation
 from ..static.office import OfficeDocument
 from ..static.pdf import PDFFile
 from ..static.elf import ElfFile
+from ..static.msi import MSIFile
 from ..errors import StaticAnalysisError
 
 class StringsAnalysis(Processor):
@@ -66,7 +67,8 @@ class FileInfoGather(Processor):
           "xlsb", "xla", "xlam", "xll", "xlw",): (OfficeDocument, "office"),
         # PDF
         (".pdf"): (PDFFile, "pdf"),
-        (".elf"): (ElfFile, "elf")
+        (".elf"): (ElfFile, "elf"),
+        (".msi"): (MSIFile, "msi")
     }
 
     def start(self):

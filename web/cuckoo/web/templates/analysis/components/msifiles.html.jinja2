@@ -1,0 +1,219 @@
+{% call ui_box(title="MSI file", has_padding=False) %}
+  <table class="table has-striped-rows">
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="no-line-break"><strong>Category</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.category }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>File name</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.filename }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Size</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.size | filesizeformat }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Type</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.type }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Media Type</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.media_type }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>MD5</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.md5 }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>SHA1</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.sha1 }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>SHA256</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.sha256 }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>SHA512</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.sha512 }}</td>
+      </tr>
+    </tbody>
+  </table>
+{% endcall %}
+
+{% for elem in pre.static.msi.content.filenames %}
+  {% call ui_box(title=elem['name'], has_padding=False) %}
+    <table class="table has-striped-rows">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="no-line-break"><strong>File name</strong></td>
+          <td class="has-line-break">{{ elem['name'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Size</strong></td>
+          <td class="has-line-break">{{ elem['details']['size'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Type</strong></td>
+          <td class="has-line-break">{{ elem['details']['type'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Media Type</strong></td>
+          <td class="has-line-break">{{ elem['details']['media_type'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>MD5</strong></td>
+          <td class="has-line-break">{{ elem['details']['md5'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>SHA1</strong></td>
+          <td class="has-line-break">{{ elem['details']['sha1'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>SHA256</strong></td>
+          <td class="has-line-break">{{ elem['details']['sha256'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>SHA512</strong></td>
+          <td class="has-line-break">{{ elem['details']['sha512'] }}</td>
+        </tr>
+        {% if 'anubi' in elem %}
+        <tr>
+          <td class="no-line-break"><strong>Anubi Hash Scan</strong></td>
+          <td class="has-line-break">{{ elem['anubi']['hash_scan'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Anubi Yara Scan</strong></td>
+          <td class="has-line-break">
+            <ul>
+            {% for m in elem['anubi']['yara_scan'] %}
+              <li>{{ m }}</li>
+            {% endfor %}
+            </ul>
+          </td>
+        </tr>
+        {% endif %}
+        {% if 'strings' in elem %}
+        <tr>
+          <td>Email</td>
+          <td>{{ elem.strings.occurrences.email }}</td>
+        </tr>
+        <tr>
+          <td>IP</td>
+          <td>{{ elem.strings.occurrences.ipv4 }}</td>
+        </tr>
+        <tr>
+          <td>Packer</td>
+          <td>{{ elem.strings.occurrences.packer }}</td>
+        </tr>
+        <tr>
+          <td>URL</td>
+          <td>{{ elem.strings.occurrences.url }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    {% if elem['analysis']['pe'] and (elem['analysis']['pe']['peid_signatures'] or elem['analysis']['pe']['pe_versioninfo']) %}
+    <br>
+    <h4 style="padding: 0.75rem;">PE General Data</h4>
+    <table class="table has-striped-rows">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="no-line-break"><strong>PE Imphash</strong></td>
+          <td class="has-line-break">{{ elem['analysis']['pe']['pe_imphash'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>PE Timestamp</strong></td>
+          <td class="has-line-break">{{ elem['analysis']['pe']['pe_timestamp'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>PE ID signatures</strong></td>
+          <td class="has-line-break">{{ elem['analysis']['pe']['peid_signatures'] }}</td>
+        </tr>
+        {% for detailed in elem['analysis']['pe']['pe_versioninfo'] %}
+        <tr>
+          <td class="no-line-break"><strong>{{ detailed['name'] }}</strong></td>
+          <td class="has-line-break">{{ detailed['value'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if elem['analysis']['pe'] and elem['analysis']['pe']['pe_sections'] and (elem['analysis']['pe']['pe_sections'] | length >0) %}
+    <br>
+    <h4 style="padding: 0.75rem;">PE Sections</h4> 
+      {{ render_table(
+        data=elem['analysis']['pe']['pe_sections'],
+        cols=["name","writeble","virtual_address","virtual_size","size_of_data","entropy"],
+        labels=["Name","Writeble","Virtual Address","Virtual Size","File Size","Entropy"],
+        style=["is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace"],
+        has_sticky_header=True,
+      )}}
+    {% endif %}
+
+    {% if elem['analysis']['pe'] and elem['analysis']['pe']['pe_resources'] and (elem['analysis']['pe']['pe_resources'] | length >0) %}
+    <br>
+    <h4 style="padding: 0.75rem;">PE Resources</h4>
+      {{ render_table(
+        data=elem['analysis']['pe']['pe_resources'],
+        cols=["name","offset","size","filetype","language","sublanguage"],
+        labels=["Name","Offset","Size","File Type","Language","Sublanguage"],
+        style=["is-monospace","is-monospace","is-monospace","is-monospace","is-monospace"],
+        has_sticky_header=True,
+      )}}
+    {% endif %}
+
+    {% if elem['analysis']['pe'] and elem['analysis']['pe']['pe_imports'] and (elem['analysis']['pe']['pe_imports'] | length >0) %}
+      {% for dll in elem['analysis']['pe']['pe_imports'] %} 
+        <br>
+        <h4 style="padding: 0.75rem;">PE Imports {{ dll['dll'] }}</h4>
+          {{ render_table(
+            data=dll['imports'],
+            cols=["name","address"],
+            labels=["Name","Address"],
+            style=["is-monospace","is-monospace"],
+            has_sticky_header=True,
+          )}}
+      {% endfor %}
+    {% endif %}
+
+    {% if elem['analysis']['pe'] and elem['analysis']['pe']['pe_exports'] and (elem['analysis']['pe']['pe_exports'] | length >0) %}
+      <br>
+      <h4 style="padding: 0.75rem;">PE Exports</h4>
+        {{ render_table(
+          data=elem['analysis']['pe']['pe_exports'],
+          cols=["name","address"],
+          labels=["Name","Address"],
+          style=["is-monospace","is-monospace"],
+          has_sticky_header=True,
+        )}}
+    {% endif %}
+
+    {% if elem['analysis']['pe'] and elem['analysis']['pe']['certificates'] %}
+      <br>
+      <h4 style="padding: 0.75rem;">PE Certificate Chain check</h4>
+      <p class="has-padding no-margin">{{ elem['analysis']['pe']['certificates']|safe }}</p>
+    {% endif %}
+ 
+  {% endcall %}
+{% endfor %}

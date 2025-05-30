@@ -33,7 +33,13 @@
         has_sticky_header=True
   )}}
 {% endcall %}
-{# PE Sigatures #}
+{% if pre.static.pe.certificates %}
+  {# PE Certificate Chain check #}
+  {% call ui_box(title="PE Certificate Chain check", has_padding=False) %}
+    <p class="has-padding no-margin">{{ pre.static.pe.certificates|safe }}</p>
+  {% endcall %}
+{% endif %}
+{# PE Signatures #}
 {% call ui_box(title="PE Signatures", has_padding=False) %}
   {% for signature in pre.static.pe.signatures %}
     <nav class="tabbar" data-enhance>

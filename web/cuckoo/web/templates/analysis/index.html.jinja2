@@ -124,6 +124,13 @@
           </div>
         {% endif %}
 
+        {# tab: static.msi #}
+        {% if pre.static and pre.static.msi and pre.static.msi.content %}
+          <div role="region" id="msifiles" hidden>
+            {% include "analysis/components/msifiles.html.jinja2" %}
+          </div>
+        {% endif %}
+
         {# tab: static.virustotal #}
         {% if pre.virustotal %}
           <div role="region" id="virus-total" hidden>
