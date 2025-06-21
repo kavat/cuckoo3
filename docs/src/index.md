@@ -17,6 +17,10 @@ Static controls are applied without run file and they are:
 - MISP intelligence (if enabled)
 - Virustotal (if enabled)
 
+### Dynamic
+
+Dynamic controls and run are applied launching an internal vm that executes file in order to monitor its behaviour (network, file system writes/reads, registry usage, etc).
+
 ## Specific control for file types
 
 File types below are supported:
