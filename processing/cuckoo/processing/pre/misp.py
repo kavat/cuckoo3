@@ -43,6 +43,7 @@ class MISPInfoGather(Processor):
                 misp_url=self.url, api_key=self.key, timeout=self.conn_timeout,
                 verify_tls=self.verify_tls
             )
+            self.ctx.log.warning("MispClient initialized")
         except MispError as e:
             raise DisablePluginError(
                 f"Failed to connect to MISP server. Error: {e}"
@@ -74,10 +75,13 @@ class MISPInfoGather(Processor):
         events = []
         try:
             if self.ctx.analysis.category == "url":
+                self.ctx.log.warning("Searching url")
                 events = self.misp_client.find_url(target.target, limit=self.event_limit,
                 to_ids=self.to_ids, publish_timestamp=self.publish_timestamp)
             elif self.ctx.analysis.category == "file":
+                self.ctx.log.warning("Searching hash")
                 events = self._search_events_hashes(target)
+            self.ctx.log.warning(f"{events}")
         except MispError as e:
             self.ctx.log.warning("Failed to retrieve MISP events", error=e)
             return []

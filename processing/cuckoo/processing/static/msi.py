@@ -6,6 +6,7 @@ import json
 import tempfile
 import shutil
 import os
+import traceback
 
 from ..errors import StaticAnalysisError
 from cuckoo.common.storage import File
@@ -64,11 +65,10 @@ class MSIFile:
           handler=handler, error=e
         )
       except Exception as e:
+        print(traceback.format_exc())
         err = "Unexpected error while running static analysis handler"
         self.ctx.log.exception(err, handler=handler, error=e)
-        self.ctx.errtracker.add_error(
-          f"{err}. Handler: {handler}. Error: {e}"
-        )
+        self.ctx.errtracker.add_error(f"{err}. Handler: {handler}. Error: {e}, Stacktrace: {traceback.format_exc()}")
 
       break
 
@@ -97,8 +97,8 @@ class MSIFile:
     return risultati
 
   def run_cmd(self, cmd_list):
-    result = subprocess.run(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-    return result.stdout.decode(errors='ignore')
+    result = subprocess.run(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return result.stdout.decode(errors='ignore'), result.stderr.decode(errors='ignore')
 
   def extract_msi_streams(self, msi_path):
     # Usa 7z per elencare i flussi nel file MSI
@@ -128,7 +128,8 @@ class MSIFile:
       shutil.rmtree(tempdir, ignore_errors=True)
     return ritorno
 
-  def parse_streams_listing(self, output):
+  def parse_streams_listing(self):
+    output, stderr = self.extract_msi_streams(self._filepath)
     lines = output.splitlines()
     suspicious = []
     for line in lines:
@@ -139,7 +140,7 @@ class MSIFile:
 
   def search_suspicious_content(self, msi_path):
     # Estrai stringhe dal binario MSI
-    output = self.run_cmd(['strings', msi_path])
+    output, stderr = self.run_cmd(['strings', msi_path])
     lines = output.splitlines()
     findings = []
     for line in lines:
@@ -150,7 +151,7 @@ class MSIFile:
 
   def extract_custom_actions_msiinfo(self, msi_path):
     try:
-      output = self.run_cmd(['msiinfo', msi_path, 'export', 'CustomAction'])
+      output, stderr = self.run_cmd(['msiinfo', msi_path, 'export', 'CustomAction'])
       lines = output.splitlines()
       results = []
       for line in lines[1:]:  # salta intestazione
@@ -165,9 +166,22 @@ class MSIFile:
       )
       return [{'error': f"{err}. Handler: {handler}. Error: {e}"}]
 
+  def get_certificates_chain(self):
+    output, err = self.run_cmd(['/bin/bash', '/opt/cuckoo3/scripts/get_certificate_chain.sh', self._filepath])
+    print(output)
+    print(err)
+    lines = output.splitlines()
+    return '<br>'.join(lines)
+
   def get_certificates_signatures(self):
-    print(f"-----------------> /bin/bash /opt/cuckoo3/scripts/check_signature.sh {self._filepath}")
     output, err = self.run_cmd(['/bin/bash', '/opt/cuckoo3/scripts/check_signature.sh', self._filepath])
+    print(output)
+    print(err)
+    lines = output.splitlines()
+    return '<br>'.join(lines)
+
+  def get_msi_summary_information(self):
+    output, err = self.run_cmd(['/bin/bash', '/opt/cuckoo3/scripts/get_msi_information.sh', self._filepath])
     print(output)
     print(err)
     lines = output.splitlines()
@@ -179,8 +193,10 @@ class MSIFile:
   def to_dict(self):
     return {
       "content": self.get_msi_content(self._filepath, {}, True, True),
-      "streams": self.parse_streams_listing(self.extract_msi_streams(self._filepath)),
+      "streams": self.parse_streams_listing(),
       #"suspicious_strings": self.search_suspicious_content(self._filepath),
       "custom_actions": self.extract_custom_actions_msiinfo(self._filepath),
-      "certificates": self.get_certificates_signatures() 
+      "certificates": self.get_certificates_signatures(),
+      #"certificate_chain": self.get_certificates_chain(),
+      "summary_information": self.get_msi_summary_information()
     }

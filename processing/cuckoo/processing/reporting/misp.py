@@ -169,6 +169,7 @@ class MISP(Reporter):
             event.set_published()
 
         try:
+            self.ctx.log.warning(f"{event}")
             self.misp_client.create_event(event)
         except MispError as e:
             self.ctx.log.warning(f"Submission of MISP event failed: {e}")

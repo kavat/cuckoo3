@@ -143,4 +143,5 @@ def StringsDetonation(filename):
     for pattern in SUSPICIOUS_STRINGS:
       if pattern in line.lower():
         rit['occurrences']['suspicious_string'].append(f"{pattern} in {prendi_tutti_contesti(line.lower(), pattern, CHAR_BEFORE_AFTER)}")
+
   return rit

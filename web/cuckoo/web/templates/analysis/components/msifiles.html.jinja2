@@ -46,16 +46,14 @@
     </tbody>
   </table>
 {% endcall %}
-
-{# PE Certificate Chain check #}
-{% call ui_box(title="PE Certificate Chain check", has_padding=False) %}
+{# MSI Certificate Chain check #}
+{% call ui_box(title="MSI Certificate Chain check", has_padding=False) %}
   {% if pre.static.msi.certificates %}
     <p class="has-padding no-margin">{{ pre.static.msi.certificates|safe }}</p>
   {% else %}
     <p class="has-padding no-margin">Not found</p>
   {% endif %}
 {% endcall %}
-
 {% for elem in pre.static.msi.content.filenames %}
   {% call ui_box(title=elem['name'], has_padding=False) %}
     <table class="table has-striped-rows">
@@ -158,7 +156,7 @@
         <tr>
           <td>Suspicious strings</td>
           <td>
-            {% for stringa in elem.strings.occurrences.suspicious_strings %}
+            {% for stringa in elem.strings.occurrences.suspicious_string %}
               {{ stringa }}<br>
             {% endfor %}
           </td>
@@ -255,6 +253,6 @@
       <h4 style="padding: 0.75rem;">PE Certificate Chain check</h4>
       <p class="has-padding no-margin">{{ elem['analysis']['pe']['certificates']|safe }}</p>
     {% endif %}
- 
+
   {% endcall %}
 {% endfor %}
