@@ -6,7 +6,7 @@ Initial born from [CERT-EE project](https://github.com/cert-ee/cuckoo3) and fork
 
 ## Generic control applied
 
-### Static
+### Static (both Linux and Windows)
 
 Static controls are applied without run file and they are:
 - File header
@@ -17,7 +17,7 @@ Static controls are applied without run file and they are:
 - MISP intelligence (if enabled)
 - Virustotal (if enabled)
 
-### Dynamic
+### Dynamic (only Windows)
 
 Dynamic controls and run are applied launching an internal vm that executes file in order to monitor its behaviour (network, file system writes/reads, registry usage, etc).
 
