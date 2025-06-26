@@ -40,7 +40,7 @@ def anubi_analyze_single_file(filepath, orig_filename):
   #  config.loggers["resources"]["logger_anubi_main"].get_logger().info("Create necessary structs")
   #  create_anubi_struct()
   #else: 
-  #  config.loggers["resources"]["logger_anubi_main"].get_logger().info("Update existing rules: {}".format(init_rules_repo('main')))
+  #  config.loggers["resources"]["logger_anubi_main"].get_logger().info("Update existing rules: {}".format(init_rules_repo('main', False)))
     
   config.loggers["resources"]["logger_anubi_main"].get_logger().info("Starting Anubi for single scan file use..")
     
