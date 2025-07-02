@@ -36,11 +36,11 @@ def anubi_analyze_single_file(filepath, orig_filename):
     rit['status'] = False
     return rit
 
-  #if check_anubi_struct() == False:
-  #  config.loggers["resources"]["logger_anubi_main"].get_logger().info("Create necessary structs")
-  #  create_anubi_struct()
-  #else: 
-  #  config.loggers["resources"]["logger_anubi_main"].get_logger().info("Update existing rules: {}".format(init_rules_repo('main', False)))
+  if check_anubi_struct() == False:
+    config.loggers["resources"]["logger_anubi_main"].get_logger().info("Create necessary structs")
+    create_anubi_struct()
+  else: 
+    config.loggers["resources"]["logger_anubi_main"].get_logger().info("Update existing rules: {}".format(init_rules_repo('main', True)))
     
   config.loggers["resources"]["logger_anubi_main"].get_logger().info("Starting Anubi for single scan file use..")
     
@@ -51,8 +51,8 @@ def anubi_analyze_single_file(filepath, orig_filename):
   rit['hash_scan'] = hash_scan_single_file(HashScanner(), filepath, 'main')
     
   config.loggers["resources"]["logger_anubi_main"].get_logger().info("Finished Anubi for single scan file use..")
-  if rit['hash_scan'] == "":
-    rit['hash_scan'] = "No malware detected"
+  if len(rit['hash_scan']) == 0:
+    rit['hash_scan'].append("No malware detected")
   if len(rit['yara_scan']) == 0:
     rit['yara_scan'].append("No Yara rule triggered")
   
