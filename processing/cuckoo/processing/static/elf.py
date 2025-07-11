@@ -1,4 +1,5 @@
 from elftools.elf.elffile import ELFFile
+from ..abtracts import Processor
 #from capstone import *
 import subprocess
 import math
@@ -6,7 +7,7 @@ import math
 import struct
 import json
 
-class ElfFile:
+class ElfFile(Processor):
 
     def str_break(self, string):
 
@@ -94,7 +95,10 @@ class ElfFile:
                         dump['Size'] = size
                         dump['Hex Dump'] = self.str_break(data.hex())
                         dump['ASCII Dump'] = self.str_break(data.decode(errors='ignore'))
-                        dump['Decimal'] = self.str_break(str(int(data.hex(), 16)))
+                        try:
+                          dump['Decimal'] = self.str_break(str(int(data.hex(), 16)))
+                        except:
+                          dump['Decimal'] = ""
 
                         bytes_data = bytes.fromhex(data.hex())
 

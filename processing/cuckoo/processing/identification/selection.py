@@ -102,7 +102,7 @@ class Identify(Processor):
                 )
 
         selected = []
-        find_selected(f, selected)
+        #find_selected(f, selected)
 
         return {
             "unpacked": f,
@@ -233,9 +233,10 @@ class SelectFile(Processor):
             # information such as the file extension.
             target = unpackedfile
 
-        print("passo")
-
         ident_filename = _make_ident_filename(target)
+
+        print(f"ident_filename = {ident_filename} != target.filename = {target.filename}")
+
         if ident_filename != target.filename:
             self.ctx.log.debug(
                 "Identify detected a different file type than extension "

@@ -1,0 +1,230 @@
+{% call ui_box(title="TAR file", has_padding=False) %}
+  <table class="table has-striped-rows">
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="no-line-break"><strong>Category</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.category }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>File name</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.filename }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Size</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.size | filesizeformat }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Type</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.type }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>Media Type</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.media_type }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>MD5</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.md5 }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>SHA1</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.sha1 }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>SHA256</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.sha256 }}</td>
+      </tr>
+      <tr>
+        <td class="no-line-break"><strong>SHA512</strong></td>
+        <td class="has-line-break">{{ analysis.submitted.sha512 }}</td>
+      </tr>
+    </tbody>
+  </table>
+{% endcall %}
+{% for elem in pre.static.tar.content.filenames %}
+  {% call ui_box(title=elem['name'], has_padding=False) %}
+    <table class="table has-striped-rows">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="no-line-break"><strong>File name</strong></td>
+          <td class="has-line-break">{{ elem['name'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Size</strong></td>
+          <td class="has-line-break">{{ elem['details']['size'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Type</strong></td>
+          <td class="has-line-break">{{ elem['details']['type'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Media Type</strong></td>
+          <td class="has-line-break">{{ elem['details']['media_type'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>MD5</strong></td>
+          <td class="has-line-break">{{ elem['details']['md5'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>SHA1</strong></td>
+          <td class="has-line-break">{{ elem['details']['sha1'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>SHA256</strong></td>
+          <td class="has-line-break">{{ elem['details']['sha256'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>SHA512</strong></td>
+          <td class="has-line-break">{{ elem['details']['sha512'] }}</td>
+        </tr>
+        {% if 'anubi' in elem %}
+        <tr>
+          <td class="no-line-break"><strong>Anubi Hash Scan</strong></td>
+          <td class="has-line-break">{{ elem['anubi']['hash_scan'] }}</td>
+        </tr>
+        <tr>
+          <td class="no-line-break"><strong>Anubi Yara Scan</strong></td>
+          <td class="has-line-break">
+            <ul>
+            {% for m in elem['anubi']['yara_scan'] %}
+              <li>{{ m }}</li>
+            {% endfor %}
+            </ul>
+          </td>
+        </tr>
+        {% endif %}
+        {% if 'strings' in elem %}
+        <tr>
+          <td>Email</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.email %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <td>IP</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.ipv4 %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <td>Packer</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.packer %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <td>URL</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.url %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <td>MAC</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.mac %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <td>Suspicious strings</td>
+          <td>
+            {% for stringa in elem.strings.occurrences.suspicious_string %}
+              {{ stringa }}<br>
+            {% endfor %}
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    {% if elem['analysis']['elf'] and elem['analysis']['elf']['elf_analysis'] and elem['analysis']['elf']['elf_analysis']['program_header'] %}
+      <br>
+      {# ELF Program Headers #}
+      {% call ui_box(title="ELF Program Headers", has_padding=False) %}
+        {{ render_table(
+          data=elem['analysis']['elf']['elf_analysis']['program_header'],
+          cols=["Type","Offset","Virtual Address","Physical Address","File Size","Flags","Suspected"],
+          labels=["Type","Offset","Virtual Address","Physical Address","File Size","Flags","Suspected"],
+          style=["is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace"],
+          has_sticky_header=True,
+        )}}
+      {% endcall %}
+    {% endif %}
+
+    {% if elem['analysis']['elf'] and elem['analysis']['elf']['elf_analysis'] and elem['analysis']['elf']['elf_analysis']['sections'] %}
+      <br>
+      {# ELF Sections #}
+      {% call ui_box(title="ELF Sections", has_padding=False) %}
+        {{ render_table(
+          data=elem['analysis']['elf']['elf_analysis']['sections'],
+          cols=["Name","Address","Entry Size","Size","Flags","Entropy","Suspected"],
+          labels=["Name", "Address","Entry Size","Size", "Flags", "Entropy", "Suspected"],
+          style=["is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace"],
+          has_sticky_header=True,
+        )}}
+      {% endcall %}
+    {% endif %}
+
+    {% if elem['analysis']['elf'] and elem['analysis']['elf']['elf_analysis'] and elem['analysis']['elf']['elf_analysis']['dynamic_symbols'] %}
+      <br>
+      {# ELF Dynamic Symbols #}
+      {% call ui_box(title="ELF Dynamic Symbols", has_padding=False) %}
+        {{ render_table(
+          data=elem['analysis']['elf']['elf_analysis']['dynamic_symbols'],
+          cols=["Name","Offset Value", "Size","Symbol Binding","Visibility","Section Index","Suspected"],
+          labels=["Name", "Offset Value","Size","Symbol Binding", "Visibility", "Section Index", "Suspected"],
+          style=["is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace","is-monospace"],
+          has_sticky_header=True,
+        )}}
+      {% endcall %}
+    {% endif %}
+
+    {% if elem['analysis']['elf'] and elem['analysis']['elf']['elf_analysis'] and elem['analysis']['elf']['elf_analysis']['functions'] %}
+      <br>
+      {# ELF Functions #}
+      {% call ui_box(title="ELF Functions", has_padding=False) %}
+        {{ render_table(
+          data=elem['analysis']['elf']['elf_analysis']['functions'],
+          cols=["Function","Offset Value","Suspected"],
+          labels=["Name", "Offset Value", "Suspected"],
+          style=["is-monospace","is-monospace","is-monospace"],
+          has_sticky_header=True,
+        )}}
+      {% endcall %}
+    {% endif %}
+
+    {% if elem['analysis']['elf'] and elem['analysis']['elf']['elf_analysis'] and elem['analysis']['elf']['elf_analysis']['variable_data'] %}
+      {# ELF Variable Data #}
+      {% call ui_box(title="ELF Variable Data", has_padding=False) %}
+        {{ render_table(
+          data=elem['analysis']['elf']['elf_analysis']['variable_data'],
+          cols=["Variable Name", "Address", "Size", "Hex Dump", "ASCII Dump"],
+          labels=["Name",        "Address", "Size", "Hex Dump", "ASCII Dump"],
+          style=["is-monospace","is-monospace","is-monospace","is-monospace"],
+          has_sticky_header=True,
+        )}}
+      {% endcall %}
+    {% endif %}
+
+  {% endcall %}
+{% endfor %}

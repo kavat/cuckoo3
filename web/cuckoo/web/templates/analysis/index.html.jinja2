@@ -124,6 +124,13 @@
           </div>
         {% endif %}
 
+        {# tab: static.tar #}
+        {% if pre.static and pre.static.tar and pre.static.tar.content %}
+          <div role="region" id="tarfiles" hidden>
+            {% include "analysis/components/tarfiles.html.jinja2" %}
+          </div>
+        {% endif %}
+
         {# tab: static.msi #}
         {% if pre.static and pre.static.msi and pre.static.msi.content %}
           <div role="region" id="msifiles" hidden>

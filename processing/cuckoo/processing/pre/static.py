@@ -13,6 +13,7 @@ from ..static.office import OfficeDocument
 from ..static.pdf import PDFFile
 from ..static.elf import ElfFile
 from ..static.msi import MSIFile
+from ..static.tar import TarFile
 from ..errors import StaticAnalysisError
 
 class StringsAnalysis(Processor):
@@ -68,7 +69,8 @@ class FileInfoGather(Processor):
         # PDF
         (".pdf"): (PDFFile, "pdf"),
         (".elf"): (ElfFile, "elf"),
-        (".msi"): (MSIFile, "msi")
+        (".msi"): (MSIFile, "msi"),
+        (".tar", ".tar.gz", ".tar.bz2", ".tar"): (TarFile, "tar")
     }
 
     def start(self):
