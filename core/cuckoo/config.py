@@ -54,6 +54,7 @@ typeloaders = {
             "db_user": config.String(default_val="guacamole_user"),
             "db_passwd": config.String(default_val="password"),
             "db_name": config.String(default_val="guacamole_db"),
+            "web_protocol": config.String(default_val="http"),
             "web_ip": config.String(default_val=get_my_local_ip()),
             "web_port": config.Int(default_val=8080),
             "web_path": config.String(default_val="/guacamole"),

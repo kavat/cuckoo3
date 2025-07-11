@@ -27,7 +27,7 @@ def GetCurrentGuacamoleVM():
     base64_bytes = base64.b64encode(client_id_bytes) 
     client_id = base64_bytes.decode("ascii") 
   
-    url = "https://{}:{}{}/#/client/{}?username={}&password={}".format(cfg("cuckoo.yaml", "guacamole", "web_ip"), cfg("cuckoo.yaml", "guacamole", "web_port"), cfg("cuckoo.yaml", "guacamole", "web_path"), client_id, cfg("cuckoo.yaml", "guacamole", "web_user"), cfg("cuckoo.yaml", "guacamole", "web_passwd"))
+    url = "{}://{}:{}{}/#/client/{}?username={}&password={}".format(cfg("cuckoo.yaml", "guacamole", "web_protocol"), cfg("cuckoo.yaml", "guacamole", "web_ip"), cfg("cuckoo.yaml", "guacamole", "web_port"), cfg("cuckoo.yaml", "guacamole", "web_path"), client_id, cfg("cuckoo.yaml", "guacamole", "web_user"), cfg("cuckoo.yaml", "guacamole", "web_passwd"))
     ritorno.append({'ip': row[1], 'url': url})
 
   return ritorno
