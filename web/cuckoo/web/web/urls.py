@@ -23,5 +23,6 @@ urlpatterns = [
     path("search/", include("cuckoo.web.search.urls")),
     path("api/", include("cuckoo.web.uiapi.urls")),
     path("compare/", include("cuckoo.web.compare.urls")),
-    path("manual/", include("cuckoo.web.manual.urls"))
+    path("manual/", include("cuckoo.web.manual.urls")),
+    path("logs/", include("cuckoo.web.logs.urls")),
 ]

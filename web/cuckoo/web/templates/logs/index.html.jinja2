@@ -1,0 +1,45 @@
+{% extends "base.html.jinja2" %}
+{% set active_page = "logs" %}
+{% set title = "Logs" %}
+
+{% block body %}
+
+  <style>
+    pre.bash {
+      background-color: #000;
+      border: 1px solid #000;
+      color: white;
+      padding: 8px;
+      font-family: courier new;
+      height: auto;
+      max-height: 500px;
+      width: auto;
+      max-width: 1700px;
+      overflow: scroll;
+    }
+  </style>
+
+  <section class="section is-small has-background-white no-padding-bottom">
+    <div class="container">
+      <h1>Console logs</h1>
+      <p>Checks and monitors console logs</p>
+    </div>
+  </section>
+  <section class="section no-padding-y">
+    <pre class="bash" id="output"></pre>
+  </section>
+
+  <script>
+    setInterval(function() {
+      var output = document.getElementById('output');
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'get_logs');
+      xhr.send();
+      xhr.onload = function() {
+        console.log(xhr.responseText);
+        output.textContent = xhr.responseText;
+      }
+    }, 5000);
+  </script>
+
+{% endblock %}
