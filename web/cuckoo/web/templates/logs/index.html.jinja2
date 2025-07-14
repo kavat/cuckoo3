@@ -36,8 +36,10 @@
       xhr.open('GET', 'get_logs');
       xhr.send();
       xhr.onload = function() {
-        console.log(xhr.responseText);
-        output.textContent = xhr.responseText;
+        if(xhr.responseText != "") {
+          output.textContent = xhr.responseText;
+          $('#output').animate({scrollTop: $('#output')[0].scrollHeight}, "slow");
+        }
       }
     }, 5000);
   </script>
