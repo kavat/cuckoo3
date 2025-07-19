@@ -1,4 +1,3 @@
-import sys
 import re
 import json
 import os
@@ -68,7 +67,7 @@ def brxor(filename):
   try:
     f = open(filename,'rb')
   except Exception:
-    print('[ERROR] FILE CAN NOT BE OPENED OR READ!')
+    #print('[ERROR] FILE CAN NOT BE OPENED OR READ!')
     return output_bxor
   # for each regex pattern found
   for match in regex.finditer(f.read().decode("latin-1", "ignore")):
@@ -97,7 +96,6 @@ def brxor(filename):
           output_bxor = '%s%s\n' % (output_bxor,buff)
           # avoid line breaks in the middle of a string
           output = output.strip().replace('\n', '\\n')
-          sys.stdout.write(output + '\n')
         buff = ''
   f.close()
   return output_bxor
@@ -116,10 +114,10 @@ def prendi_tutti_contesti(testo, sottostringa, n):
   return risultati
 
 def run_cmd(cmd_list):
-  result = subprocess.run(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-  return result.stdout.decode(errors='ignore')
+  result = subprocess.run(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  return result.stdout.decode(errors='ignore'), result.stderr.decode(errors='ignore')
 
-def StringsDetonation(filename):
+def StringsDetonation(filename, log_handler, errtracker_handler):
   rit = {'status':True, "occurrences":{}, 'msg':"" }
   all_patterns = {
     "url": "\\b(?:http|https|ftp):\\/\\/[a-zA-Z0-9-._~:?#[\\]@!$&'()*+,;=]+",
@@ -130,18 +128,22 @@ def StringsDetonation(filename):
     "packer": "^(upx|aspac|pec|fsg|themida|mew|armadillo|nsis|yoda|petite)"
   }
   patterns_ = ["url", "ipv4", "email", "packer"]
+  log_handler.info(f"[{filename}] started string analysis stage 1")
   for pattern_ in patterns_:
     rit['occurrences'][pattern_] = []
     patterns = {pattern_:all_patterns[pattern_]}
     for s in find_strings(filename, patterns):
       rit['occurrences'][pattern_].append(s)
 
-  output = run_cmd(['strings', filename])
+  log_handler.info(f"[{filename}] started string analysis stage 2")
+  output, err = run_cmd(['strings', filename])
   lines = output.splitlines()
   rit['occurrences']['suspicious_string'] = []
   for line in lines:
     for pattern in SUSPICIOUS_STRINGS:
       if pattern in line.lower():
         rit['occurrences']['suspicious_string'].append(f"{pattern} in {prendi_tutti_contesti(line.lower(), pattern, CHAR_BEFORE_AFTER)}")
+
+  log_handler.info(f"[{filename}] string analysis finished")
 
   return rit

@@ -19,7 +19,6 @@ from ..static.pdf import PDFFile
 from ..static.elf import ElfFile
 
 from cuckoo.common.external_interactions import anubi_analyze_single_file
-from ..static.strings_analysis import StringsDetonation
 
 
 SUSPICIOUS_STRINGS = [
@@ -42,7 +41,7 @@ class MSIFile(Processor):
   }
 
   def strings_file_in_msi(self, target, file_path):
-    return StringsDetonation(file_path)
+    return StringsDetonation(file_path, self.log_handler, self.errtracker_handler)
 
   def anubi_file_in_msi(self, orig_filename, file_path):
     return anubi_analyze_single_file(file_path, orig_filename)
@@ -59,17 +58,16 @@ class MSIFile(Processor):
 
       handler, subkey = handler_subkey
       try:
-        data = handler(file_path).to_dict()
+        data = handler(file_path, self.log_handler, self.errtracker_handler).to_dict()
       except StaticAnalysisError as e:
-        self.ctx.log.warning(
+        self.log_handler.warning(
           "Failed to run static analysis handler",
           handler=handler, error=e
         )
       except Exception as e:
-        print(traceback.format_exc())
         err = "Unexpected error while running static analysis handler"
-        self.ctx.log.exception(err, handler=handler, error=e)
-        self.ctx.errtracker.add_error(f"{err}. Handler: {handler}. Error: {e}, Stacktrace: {traceback.format_exc()}")
+        self.log_handler.exception(err, handler=handler, error=e)
+        self.errtracker_handler.add_error(f"{err}. Handler: {handler}. Error: {e}, Stacktrace: {traceback.format_exc()}")
 
       break
 
@@ -161,35 +159,37 @@ class MSIFile(Processor):
       return results or [{'info': 'No suspicious CustomAction has been found'}]
     except Exception as e:
       err = "Unexpected error during msiinfo run"
-      self.ctx.log.exception(err, handler=handler, error=e)
-      self.ctx.errtracker.add_error(
+      self,log_handler.exception(err, handler=handler, error=e)
+      self.errtracker_handler.add_error(
         f"{err}. Handler: {handler}. Error: {e}"
       )
       return [{'error': f"{err}. Handler: {handler}. Error: {e}"}]
 
   def get_certificates_chain(self):
     output, err = self.run_cmd(['/bin/bash', '/opt/cuckoo3/scripts/get_certificate_chain.sh', self._filepath])
-    print(output)
-    print(err)
+    self.log_handler.info(f"[MSI analysis] [{self._filepath}] get_certificates_chain output: {output}")
+    self.log_handler.info(f"[MSI analysis] [{self._filepath}] get_certificates_chain err: {err}")
     lines = output.splitlines()
     return '<br>'.join(lines)
 
   def get_certificates_signatures(self):
     output, err = self.run_cmd(['/bin/bash', '/opt/cuckoo3/scripts/check_signature.sh', self._filepath])
-    print(output)
-    print(err)
+    self.log_handler.info(f"[MSI analysis] [{self._filepath}] get_certificates_signatures output: {output}")
+    self.log_handler.info(f"[MSI analysis] [{self._filepath}] get_certificates_signatures err: {err}")
     lines = output.splitlines()
     return '<br>'.join(lines)
 
   def get_msi_summary_information(self):
     output, err = self.run_cmd(['/bin/bash', '/opt/cuckoo3/scripts/get_msi_information.sh', self._filepath])
-    print(output)
-    print(err)
+    self.log_handler.info(f"[MSI analysis] [{self._filepath}] get_msi_summary_information output: {output}")
+    self.log_handler.info(f"[MSI analysis] [{self._filepath}] get_msi_summary_information err: {err}")
     lines = output.splitlines()
     return '<br>'.join(lines)
 
-  def __init__(self, filepath):
+  def __init__(self, filepath, log_handler, errtracker_handler):
     self._filepath = filepath
+    self.log_handler = log_handler
+    self.errtracker_handler = errtracker_handler
 
   def to_dict(self):
     return {

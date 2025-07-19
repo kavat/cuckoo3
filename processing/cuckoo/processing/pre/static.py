@@ -28,7 +28,7 @@ class StringsAnalysis(Processor):
         if os.path.getsize(file_path) < 1:
             return {}
 
-        return StringsDetonation(file_path)
+        return StringsDetonation(file_path, self.ctx.log, self.ctx.errtracker)
 
 
 class AnubiAnalysis(Processor):
@@ -90,7 +90,7 @@ class FileInfoGather(Processor):
 
             handler, subkey = handler_subkey
             try:
-                data = handler(file_path).to_dict()
+                data = handler(file_path, self.ctx.log, self.ctx.errtracker).to_dict()
             except StaticAnalysisError as e:
                 self.ctx.log.warning(
                     "Failed to run static analysis handler",

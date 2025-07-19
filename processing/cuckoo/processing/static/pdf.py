@@ -15,8 +15,10 @@ class PDFStaticAnalysisError(StaticAnalysisError):
 
 class PDFFile:
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, log_handler, errtracker_handler):
         self._filepath = filepath
+        self.log_handler = log_handler
+        self.errtracker_handler = errtracker_handler
 
     def uncompress_flatdecode(self):
         ritorno = ""
@@ -43,6 +45,7 @@ class PDFFile:
         return pdf_xml.readlines()
 
     def to_dict(self):
+
         return {
             "pdf_general_content": self.general_content(),
             "pdf_decoded_content": self.uncompress_flatdecode()

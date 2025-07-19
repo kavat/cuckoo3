@@ -50,8 +50,10 @@ def _deobfuscate(code):
 
 class OfficeDocument:
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, log_handler, errtracker_handler):
         self._filepath = filepath
+        self.log_handler = log_handler
+        self.errtracker_handler = errtracker_handler
 
     def extract_eps(self):
         """Extract some information from Encapsulated Post Script files."""

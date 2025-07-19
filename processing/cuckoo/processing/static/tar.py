@@ -19,7 +19,6 @@ from ..static.pdf import PDFFile
 from ..static.elf import ElfFile
 
 from cuckoo.common.external_interactions import anubi_analyze_single_file
-from ..static.strings_analysis import StringsDetonation
 
 from pathlib import Path
 
@@ -43,7 +42,7 @@ class TarFile(Processor):
   }
 
   def strings_file_in_tar(self, target, file_path):
-    return StringsDetonation(file_path)
+    return StringsDetonation(file_path, self.log_handler, self.errtracker_handler)
 
   def anubi_file_in_tar(self, orig_filename, file_path):
     return anubi_analyze_single_file(file_path, orig_filename)
@@ -59,19 +58,18 @@ class TarFile(Processor):
         continue
 
       handler, subkey = handler_subkey
-      print(f"Gestisco {handler} e {subkey}")
+      self.log_handler.info(f"[TAR analysis] [{file_path}] handling {handler} for {subkey}")
       try:
-        data = handler(file_path).to_dict()
+        data = handler(file_path, self.log_handler, self.errtracker_handler).to_dict()
       except StaticAnalysisError as e:
-        self.ctx.log.warning(
+        self.log_handler.warning(
           "Failed to run static analysis handler",
           handler=handler, error=e
         )
       except Exception as e:
-        print(traceback.format_exc())
         err = "Unexpected error while running static analysis handler"
-        self.ctx.log.exception(err, handler=handler, error=e)
-        self.ctx.errtracker.add_error(f"{err}. Handler: {handler}. Error: {e}, Stacktrace: {traceback.format_exc()}")
+        self.log_handler.exception(err, handler=handler, error=e)
+        self.errtracker_handler.add_error(f"{err}. Handler: {handler}. Error: {e}, Stacktrace: {traceback.format_exc()}")
 
       break
 
@@ -83,7 +81,7 @@ class TarFile(Processor):
     return {}
 
   def in_tar_file_details(self, filepath):
-    print(f"filepath: {filepath}")
+    self.log_handler.info(f"[TAR analysis] [{filepath}] recovering file metadata")
     file_helper = File(filepath)
     return file_helper.to_dict()
 
@@ -122,7 +120,8 @@ class TarFile(Processor):
             _ = list(os.scandir(full_path))  # Tenta accesso per verificare permessi
             new_dirs.append(d)
           except PermissionError:
-            print(f"Permission denied: {full_path}")
+            pass
+            #print(f"Permission denied: {full_path}")
           except FileNotFoundError:
             pass
         dirs[:] = new_dirs  # Modifica dirs in-place per evitare discesa
@@ -131,14 +130,17 @@ class TarFile(Processor):
           file_path = f"{Path(root) / file}"
           file_name = file_path.replace(f"{tempdir}/", "")
           details = self.in_tar_file_details(file_path)
-          ritorno['filenames'].append({
-            'name': file_name,
-            'path': file_path,
-            'details': details,
-            'analysis': self.process_file_in_tar(details, file_path),
-            'strings': self.strings_file_in_tar(details, file_path),
-            'anubi': self.anubi_file_in_tar(file_name, file_path)
-          })
+          if os.path.islink(file_path):
+            self.log_handler.info(f"[TAR analysis] skipped {file_path} because link")
+          else:
+            ritorno['filenames'].append({
+              'name': file_name,
+              'path': file_path,
+              'details': details,
+              'analysis': self.process_file_in_tar(details, file_path),
+              'strings': self.strings_file_in_tar(details, file_path),
+              'anubi': self.anubi_file_in_tar(file_name, file_path)
+            })
 
     if delete:
       shutil.rmtree(tempdir, ignore_errors=True)
@@ -165,10 +167,13 @@ class TarFile(Processor):
           findings.append({'sospetto': True, 'pattern': pattern, 'occurrences': self.prendi_tutti_contesti(line.lower(), pattern, CHAR_BEFORE_AFTER)})
     return findings or [{'info': 'No suspicious string has been found'}]
 
-  def __init__(self, filepath):
+  def __init__(self, filepath, log_handler, errtracker_handler):
     self._filepath = filepath
+    self.log_handler = log_handler
+    self.errtracker_handler = errtracker_handler
 
   def to_dict(self):
+
     return {
       "content": self.get_tar_content(self._filepath, {}, True, True),
       "streams": self.parse_streams_listing(),

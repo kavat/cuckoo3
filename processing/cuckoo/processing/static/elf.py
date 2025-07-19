@@ -161,11 +161,11 @@ class ElfFile(Processor):
         cfg = proj.analyses.CFGFast(normalize=True)
         main = proj.kb.functions['main']
         dec = proj.analyses.Decompiler(main, cfg=cfg.model)
-        print('[*] Generated C - Lang Pseudocode')
 
         return dec.codegen.text
 
     def read_string(self, memory, addr):
+
         """Read and decode null-terminated strings"""
         s = b""
         while True:
@@ -179,7 +179,7 @@ class ElfFile(Processor):
     def disassem_vars(self, file):
 
         """Get Variable data from binary"""
-
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] [data] Check disassembly vars")
         proj = angr.Project(file, auto_load_libs=False)
         var_str = []
         for section in proj.loader.main_object.sections:
@@ -210,7 +210,6 @@ class ElfFile(Processor):
                         int_val = struct.unpack("<I", val)[0]
                         var_str.append(f"/* Address: {hex(addr)} (.data)-> Value: {int_val} */")
                         addr += 4
-        print('[*] Grabbed Assembly Instructions')
         return '\n'.join(var_str)
 
     def detect_pyinstaller(self, filename):
@@ -279,17 +278,15 @@ class ElfFile(Processor):
             fileentropy = calculate_entropy(data)
 
             if len(found) > 0:
-                print(f"{filename} is packed with {', '.join(found)}, Entropy: {fileentropy:.4f}")
                 pa_ = f"{filename} is packed with {', '.join(found)}"
 
                 if 'UPX' in found and use_unpacked :
                     #TODO : Fix error handling for UPX files with manipulated hex data
                     try:
                         subprocess.run(["upx", "-d", filename], check=True, stdout=subprocess.DEVNULL)
-                        print("[*] Unpacked UPX file successfully")
 
                     except:
-                        print("[*] Cound not Unpack UPX file")
+                        pass
 
             elif self.detect_pyinstaller(filename):
                 pa_ = self.detect_pyinstaller(filename)
@@ -366,6 +363,7 @@ class ElfFile(Processor):
             return {list(item.keys())[0]: list(item.values())[0] for item in matches}
 
     def header(self, file):
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] [data] Check headers")
         data = subprocess.run(["readelf", "-h", file, "-W"], text=True, capture_output=True).stdout
         header_data = dict()
         for _ in data.splitlines():
@@ -384,11 +382,10 @@ class ElfFile(Processor):
         else:
             header_data["Stripped File"] = True
 
-        print("[*] Parsed Header Data")
-
         return header_data
 
     def sections(self, file):
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] [data] Check sections")
         data = subprocess.run(["readelf", "-S", file, "-W"], text=True, capture_output=True).stdout
         if data.strip() != "There are no sections in this file." :
             section_list, parsed_list, section_data = [[] for _ in range(3)]
@@ -427,13 +424,12 @@ class ElfFile(Processor):
         else :
             output = "An Unknown Error Occured"
 
-        print("[*] Parsed Section Data")
-
         return output
 
         #TODO :permissions of each sections in complete words instead of WAX format
 
     def program_headers(self, file):
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] [data] Check program headers")
         data = subprocess.run(["readelf","-l", file, "-W"], text=True, capture_output=True).stdout
         data = data.splitlines()
         start = data.index("Program Headers:")
@@ -455,11 +451,10 @@ class ElfFile(Processor):
                 _ = dict(zip(header_keys, _))
                 program_headers.append(_)
 
-        print("[*] Parsed Program Headers")
-
         return program_headers
 
     def shared_libraries(self, file):
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] [data] Check shared libraries")
         data = subprocess.run(["readelf","-d", file, "-W"], text=True, capture_output=True).stdout
 
         if data.strip()!="There is no dynamic section in this file.":
@@ -477,6 +472,7 @@ class ElfFile(Processor):
         return shared_libraries
 
     def dyn_syms(self, file):
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] [data] Check dynamics symbols")
         data = subprocess.run(["readelf","--dyn-syms", file, "-W"], text=True, capture_output=True).stdout
         if len(data)!=0:
             data = data.splitlines()[3:]
@@ -492,11 +488,10 @@ class ElfFile(Processor):
         else:
             dyn_sym_table = ["Couldn't retrive the Dynamic Symbols table "]
 
-        print("[*] Parsed Dynamic Symbols table")
-
         return dyn_sym_table
 
     def functions(self, file):
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] [data] Check functions")
         command = f"objdump -d {file} | grep '<.*>:'"
         map = ["Offset Value", "Function"]
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -515,11 +510,10 @@ class ElfFile(Processor):
         if stderr:
             raise ValueError
 
-        print("[*] Parsed Functions")
-
         return function_table
 
     def variable_data(self, file):
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] [data] Check variable data")
         header_dict = self.header(file)
         if "little" in header_dict['Data']:
             endian = "little"
@@ -529,22 +523,22 @@ class ElfFile(Processor):
         if len(vars) == 0:
             vars = ['No Varibles are defined in the .data section']
 
-        print("[*] Parsed Variable Data")
         return vars
 
     def antidebug_apis(self, file):
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] [data] Check antidebug apis")
         apis = self.detect_antidebug_apis(file)
         if len(apis) == 0:
             apis = ['No Suspicious Apis Detected']
-        print("[*] Analysed APIs")
         return apis
 
     def packer(self, file, arg):
-
-        print("[*] Analysing Packer data")
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] [data] Check packer")
         return self.detect_packer(file, arg)
 
     def data(self, file, unpack):
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] [static_analysis] Started data") 
+
         table = ['headers', 'packer_info', 'sections', 'program_header', 'shared_libraries', 'dynamic_symbols', 'functions', 'variable_data', 'suspicious_api'] #, '<h2>Disassembling</h2>']
 
         vars = [self.header(file),
@@ -571,14 +565,17 @@ class ElfFile(Processor):
             save_json (bool): Whether to save the analysis result as JSON.
             unpack (bool): Whether to attempt unpacking UPX.
         """
+        self.log_handler.info(f"[ELF analysis] [{self._filepath}] Started static_analysis")
         analysis_result = self.data(file_path, unpack)
         #analysis_json = json.dumps(analysis_result, indent=4)
         return analysis_result
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, log_handler, errtracker_handler):
         self._filepath = filepath
+        self.log_handler = log_handler
+        self.errtracker_handler = errtracker_handler
 
     def to_dict(self):
+        self.log_handler.info(f"ELF analysis for {self._filepath}")
         return {"elf_analysis": self.static_analysis(self._filepath, True)}
   
-#print(ElfFile("/tmp/pnscan").to_dict())

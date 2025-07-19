@@ -209,11 +209,13 @@ class PEFile:
 
     _peid_sigdb = None
 
-    def __init__(self, filepath):
+    def __init__(self, filepath, log_handler, errtracker_handler):
         self.filepath_orig = filepath
         self._path = Path(filepath)
         if not self._path.exists():
             raise PEStaticAnalysisError(f"Path {filepath} does not exist")
+        self.log_handler = log_handler
+        self.errtracker_handler = errtracker_handler
 
         try:
             self._pe = pefile.PE(filepath, fast_load=False)
@@ -238,11 +240,9 @@ class PEFile:
         if not self.is_signed():
             return "File not signed"
 
-        print(f"-----------------> /bin/bash /opt/cuckoo3/scripts/check_signature.sh {self.filepath_orig}")
-        print(f"-----------------> /bin/bash /opt/cuckoo3/scripts/check_signature.sh {self._path}")
         output, err = self.run_cmd(['/bin/bash', '/opt/cuckoo3/scripts/check_signature.sh', self.filepath_orig])
-        print(output)
-        print(err)
+        self.log_handler.info(f"[PE analysis] [{self._filepath}] get_certificates_signatures output: {output}")
+        self.log_handler.info(f"[PE analysis] [{self._filepath}] get_certificates_signatures err: {err}")
         lines = output.splitlines()
         return '<br>'.join(lines)
 
@@ -464,6 +464,7 @@ class PEFile:
         return self._peid_sigdb.match(self._pe, ep_only=True) or []
 
     def to_dict(self):
+
         return {
             "peid_signatures": self.get_peid_signatures(),
             "pe_imports": self.get_imported_symbols(),
