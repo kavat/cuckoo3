@@ -13,6 +13,8 @@ pip install -U git+https://github.com/cert-ee/sflock
 pip install -U git+https://github.com/cert-ee/roach
 pip install -U git+https://github.com/cert-ee/httpreplay
 pip install -U pyelftools
+pip install -U pyexecjs
+pip install -U pyenchant
 
 declare -a pkglist=("./common" "./processing" "./machineries" "./web" "./node" "./core")
 

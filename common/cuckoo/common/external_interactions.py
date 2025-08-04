@@ -29,7 +29,7 @@ from core.ip_checker import (
 
 def anubi_analyze_single_file(filepath, orig_filename):
 
-  rit = {'status':True, 'hash_scan':"", 'yara_scan':[], 'msg':"", "file":orig_filename}
+  rit = {'status':True, 'hash_scan':[], 'yara_scan':[], 'msg':"", "file":orig_filename}
 
   if os.path.isfile(filepath) == False:
     rit['msg'] = "{} not exists".format(filepath)
@@ -38,7 +38,7 @@ def anubi_analyze_single_file(filepath, orig_filename):
 
   if check_anubi_struct() == False:
     config.loggers["resources"]["logger_anubi_main"].get_logger().info("Create necessary structs")
-    create_anubi_struct()
+    create_anubi_struct(False)
   else: 
     config.loggers["resources"]["logger_anubi_main"].get_logger().info("Update existing rules: {}".format(init_rules_repo('main', True)))
     
@@ -52,7 +52,7 @@ def anubi_analyze_single_file(filepath, orig_filename):
     
   config.loggers["resources"]["logger_anubi_main"].get_logger().info("Finished Anubi for single scan file use..")
   if len(rit['hash_scan']) == 0:
-    rit['hash_scan'].append("No malware detected")
+    rit['hash_scan'] = "No malware detected"
   if len(rit['yara_scan']) == 0:
     rit['yara_scan'].append("No Yara rule triggered")
   

@@ -74,7 +74,7 @@ class VirustotalK(Processor):
 
         if 'avs' not in info:
             self.ctx.log.error(
-                "Error on Virustotal response", error:"missed 'avs'"
+                "Error on Virustotal response", error="missed 'avs'"
             )
             self.ctx.log.error(
                 "Hits returned", hits=info

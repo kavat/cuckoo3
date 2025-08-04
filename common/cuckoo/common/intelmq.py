@@ -10,11 +10,11 @@ import requests
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
-
 from .log import set_logger_level
 
 set_logger_level("elasticsearch", logging.ERROR)
 set_logger_level("urllib3.connectionpool", logging.ERROR)
+
 
 class IntelMQError(Exception):
     pass

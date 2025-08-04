@@ -241,8 +241,8 @@ class PEFile:
             return "File not signed"
 
         output, err = self.run_cmd(['/bin/bash', '/opt/cuckoo3/scripts/check_signature.sh', self.filepath_orig])
-        self.log_handler.info(f"[PE analysis] [{self._filepath}] get_certificates_signatures output: {output}")
-        self.log_handler.info(f"[PE analysis] [{self._filepath}] get_certificates_signatures err: {err}")
+        self.log_handler.info(f"[PE analysis] [{self.filepath_orig}] get_certificates_signatures output: {output}")
+        self.log_handler.info(f"[PE analysis] [{self.filepath_orig}] get_certificates_signatures err: {err}")
         lines = output.splitlines()
         return '<br>'.join(lines)
 
