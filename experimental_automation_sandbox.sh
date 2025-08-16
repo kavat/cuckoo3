@@ -99,7 +99,6 @@ sudo -u cuckoo python3 -m venv /opt/cuckoo3/venv
 su - cuckoo
 source /opt/cuckoo3/venv/bin/activate
 >> cd /opt/cuckoo3
->> pip install wheel
 >> ./install.sh
 >> cuckoo createcwd
 >> cuckoo getmonitor monitor.zip
