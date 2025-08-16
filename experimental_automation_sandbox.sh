@@ -31,6 +31,7 @@ xpack.security.enabled: false
 xpack.security.enrollment.enabled: false
 xpack.security.http.ssl.enabled: false
 xpack.security.transport.ssl.enabled: false
+cluster.initial_master_nodes: [\"$(hostname)\"]
 http.host: 127.0.0.1" > /etc/elasticsearch/elasticsearch.yml
 
 # Enabling and restarting ELK service
@@ -114,7 +115,8 @@ echo '#!/bin/bash
 chmod 666 /dev/kvm
 /opt/cuckoo3/venv/bin/vmcloak-qemubridge br0 192.168.30.1/24
 chmod u+s /usr/lib/qemu/qemu-bridge-helper
-#su - cuckoo -c "/opt/cuckoo3/venv/bin/cuckoo --debug --cancel-abandoned"' >> /usr/local/bin/start_cuckoo
+#su - cuckoo -c "/opt/cuckoo3/venv/bin/cuckoo --debug --cancel-abandoned
+sudo -u cuckoo /opt/cuckoo3/venv/bin/cuckoo --debug --cancel-abandoned"' >> /usr/local/bin/start_cuckoo
 chmod +x /usr/local/bin/start_cuckoo
 
 # Creating bridge first time

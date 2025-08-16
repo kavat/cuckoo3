@@ -18,16 +18,15 @@ class URLSubmission(serializers.Serializer):
     url = serializers.URLField(help_text="A URL to analyze")
     settings = serializers.JSONField(help_text="A settings dictionary")
 
-class SubmitFile(APIView):
 
+class SubmitFile(APIView):
     serializer_class = FileSubmission
     parser_classes = [MultiPartParser]
 
     def post(self, request):
-
         serializer = FileSubmission(data=request.data)
         if not serializer.is_valid():
-            return Response(serializer.errors, status=411)
+            return Response(serializer.errors, status=400)
 
         uploaded = request.FILES["file"]
         req_settings = serializer.data["settings"]
@@ -38,36 +37,28 @@ class SubmitFile(APIView):
 
             final_settings = s_maker.make_settings()
             analysis_id = submit.file(
-                uploaded.temporary_file_path(), final_settings,
-                file_name=uploaded.name
+                uploaded.temporary_file_path(), final_settings, file_name=uploaded.name
             )
         except submit.SubmissionError as e:
-            return Response({"error": str(e)}, status=412)
+            return Response({"error": str(e)}, status=400)
 
         try:
             submit.notify()
         except submit.SubmissionError as e:
-            return Response(
-                {
-                    "error": str(e),
-                    "analysis_id": analysis_id
-                }, status=503
-            )
+            return Response({"error": str(e), "analysis_id": analysis_id}, status=503)
 
-        return Response({
-            "analysis_id": analysis_id,
-            "settings": final_settings.to_dict()
-        })
+        return Response(
+            {"analysis_id": analysis_id, "settings": final_settings.to_dict()}
+        )
 
 
 class SubmitURL(APIView):
-
     serializer_class = URLSubmission
 
     def post(self, request):
         serializer = URLSubmission(data=request.data)
         if not serializer.is_valid():
-            return Response(serializer.errors, status=421)
+            return Response(serializer.errors, status=400)
 
         url = request.data["url"]
         req_settings = serializer.data["settings"]
@@ -79,37 +70,28 @@ class SubmitURL(APIView):
             final_settings = s_maker.make_settings()
             analysis_id = submit.url(url, final_settings)
         except submit.SubmissionError as e:
-            return Response({"error": str(e)}, status=422)
+            return Response({"error": str(e)}, status=400)
 
         try:
             submit.notify()
         except submit.SubmissionError as e:
-            return Response(
-                {
-                    "error": str(e),
-                    "analysis_id": analysis_id
-                }, status=503
-            )
+            return Response({"error": str(e), "analysis_id": analysis_id}, status=503)
 
-        return Response({
-            "analysis_id": analysis_id,
-            "settings": final_settings.to_dict()
-        })
+        return Response(
+            {"analysis_id": analysis_id, "settings": final_settings.to_dict()}
+        )
 
 
 class AvailablePlatforms(APIView):
-
     def get(self, request):
         return Response(submit.settings_maker.available_platforms())
 
 
 class AvailableRoutes(APIView):
-
     def get(self, request):
         return Response(submit.settings_maker.available_routes())
 
 
 class AvailableBrowsers(APIView):
-
     def get(self, request):
         return Response(submit.settings_maker.available_browsers())

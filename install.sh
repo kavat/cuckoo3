@@ -7,14 +7,14 @@ pip install -U mysql-connector-python
 pip install -U pandas
 pip install -U pdfquery
 pip install -U netifaces
+pip install -U pyelftools
+pip install -U pyexecjs
+pip install -U pyenchant
 # TMP solution until new versions of sflock etc are released to PyPI
 pip install -U git+https://github.com/cert-ee/peepdf
 pip install -U git+https://github.com/cert-ee/sflock
 pip install -U git+https://github.com/cert-ee/roach
 pip install -U git+https://github.com/cert-ee/httpreplay
-pip install -U pyelftools
-pip install -U pyexecjs
-pip install -U pyenchant
 
 declare -a pkglist=("./common" "./processing" "./machineries" "./web" "./node" "./core")
 

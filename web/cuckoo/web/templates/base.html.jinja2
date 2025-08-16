@@ -19,6 +19,7 @@
       <main>{% block body %}{% endblock %}</main>
       <div class="footer-push"></div>
     </div>
+    {% include "partial/footer.html.jinja2" %}
     <script>window.csrf_token = "{{ csrf_token }}";</script>
     <script src="{{ static('js/hashrouter.js') }}"></script>
     <script src="{{ static('js/ui.js') }}"></script>

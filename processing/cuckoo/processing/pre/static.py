@@ -36,10 +36,6 @@ class AnubiAnalysis(Processor):
     CATEGORY = ["file"]
     KEY = "anubi"
 
-    @classmethod
-    def enabled(cls):
-        return cfg("anubi", "enabled", subpkg="processing")
-
     def start(self):
         target = self.ctx.result.get("target")
 

@@ -12,8 +12,8 @@ from ..signatures.yarasigs import YaraFile, YaraSignatureError
 
 log = CuckooGlobalLogger(__name__)
 
-class StaticYaraRules(Processor):
 
+class StaticYaraRules(Processor):
     CATEGORY = ["file"]
 
     compiled_rules = []
@@ -38,14 +38,10 @@ class StaticYaraRules(Processor):
 
             try:
                 rule_path = os.path.join(yarapath, filename)
-                log.debug(
-                    "Loading yara static signature file", filepath=rule_path
-                )
+                log.debug("Loading yara static signature file", filepath=rule_path)
                 cls.compiled_rules.append(YaraFile(rule_path))
             except YaraSignatureError as e:
-                log.error(
-                    PluginError(f"Error loading Yara rules. {e}")
-                )
+                raise PluginError(f"Error loading Yara rules. {e}")
 
     def start(self):
         if not self.compiled_rules:
@@ -57,8 +53,7 @@ class StaticYaraRules(Processor):
         )
         if not os.path.isfile(filepath):
             self.ctx.log.warning(
-                "Cannot run yara rules, target path does not exist",
-                filepath=filepath
+                "Cannot run yara rules, target path does not exist", filepath=filepath
             )
             return
 
@@ -77,10 +72,9 @@ class StaticYaraRules(Processor):
 
         for match in matches:
             try:
-                match.trigger_as_signature(
-                    self.ctx.signature_tracker, "target file"
-                )
+                match.trigger_as_signature(self.ctx.signature_tracker, "target file")
             except YaraSignatureError as e:
                 self.ctx.log.warning(
-                    "Failed to trigger signature for Yara rule match", error=e,
+                    "Failed to trigger signature for Yara rule match",
+                    error=e,
                 )

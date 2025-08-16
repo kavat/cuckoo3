@@ -10,7 +10,7 @@ from pathlib import Path
 
 import elasticsearch_dsl
 from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import ElasticsearchException, TransportError
+from elasticsearch import TransportError, ApiError, Elasticsearch
 
 from .log import set_logger_level, CuckooGlobalLogger
 
@@ -35,11 +35,10 @@ class _Indices:
 
 
 class _ESManager:
-
     index_mapping_filename = {
         _Indices.ANALYSES: "analysesmapping.json",
         _Indices.TASKS: "tasksmapping.json",
-        _Indices.EVENTS: "eventsmapping.json"
+        _Indices.EVENTS: "eventsmapping.json",
     }
 
     def __init__(self):
@@ -47,7 +46,7 @@ class _ESManager:
         self._names_realnames = {
             _Indices.EVENTS: None,
             _Indices.ANALYSES: None,
-            _Indices.TASKS: None
+            _Indices.TASKS: None,
         }
 
         self._client = None
@@ -76,34 +75,37 @@ class _ESManager:
     def index_realname(self, name):
         if not self._initialized:
             raise ElasticSearchError(
-                "Elasticsearch manager not initialized. Cannot lookup real "
-                "index name."
+                "Elasticsearch manager not initialized. Cannot lookup real index name."
             )
         return self._names_realnames[name]
 
-    def configure(self, hosts, analyses_index, tasks_index, events_index,
-                  max_result_window=10000, timeout=60, user="", password="", ca_certs=""):
-
+    def configure(
+        self,
+        hosts,
+        analyses_index,
+        tasks_index,
+        events_index,
+        max_result_window=10000,
+        timeout=60,
+        user="",
+        password="",
+        ca_certs="",
+    ):
         self._names_realnames["analyses"] = analyses_index
         self._names_realnames["tasks"] = tasks_index
         self._names_realnames["events"] = events_index
 
-        if user == None or password == None or user == "" or password == "":
-            http_auth = None
-        else:
-            http_auth = (user, password)
-
         self._max_result_window = max_result_window
         self._hosts = hosts
-        self._client = Elasticsearch(hosts, timeout=timeout,
-                                     http_auth=http_auth, ca_certs=ca_certs)
+        self._client = Elasticsearch(
+            hosts=hosts, timeout=timeout, ca_certs=ca_certs
+            #hosts, timeout=timeout, http_auth=(user, password), ca_certs=ca_certs
+        )
         self._initialized = True
 
     def verify(self):
         if not self.client.ping():
-            raise ElasticSearchError(
-                "Could not connect to Elasticsearch host(s)"
-            )
+            raise ElasticSearchError("Could not connect to Elasticsearch host(s)")
 
     def all_indices_exist(self):
         self.verify()
@@ -115,13 +117,10 @@ class _ESManager:
             if name in existing:
                 continue
 
-            mapping_path = Path(
-                templates_directory, self.index_mapping_filename[name]
-            )
+            mapping_path = Path(templates_directory, self.index_mapping_filename[name])
             if not mapping_path.is_file():
                 raise ElasticSearchError(
-                    f"Mapping file {mapping_path} for index {name} does not"
-                    f" exist."
+                    f"Mapping file {mapping_path} for index {name} does not exist."
                 )
 
             with open(mapping_path, "r") as fp:
@@ -129,8 +128,7 @@ class _ESManager:
                     index_mapping = json.load(fp)
                 except json.JSONDecodeError as e:
                     raise ElasticSearchError(
-                        f"Invalid JSON in index mapping file {mapping_path}. "
-                        f"Error: {e}"
+                        f"Invalid JSON in index mapping file {mapping_path}. Error: {e}"
                     )
 
             self._create_index(realname, index_mapping)
@@ -139,9 +137,9 @@ class _ESManager:
         existing = []
         for name, realname in self._names_realnames.items():
             try:
-                if self.client.indices.exists(realname):
+                if self.client.indices.exists(index=realname):
                     existing.append(name)
-            except ElasticsearchException as e:
+            except (ApiError, TransportError) as e:
                 raise ElasticSearchError(
                     f"Failure while determining existing indices. {e}"
                 )
@@ -151,9 +149,9 @@ class _ESManager:
     def _create_index(self, name, index_mapping):
         try:
             log.debug("Creating index", index_name=name)
-            self.client.indices.create(name, body=index_mapping)
+            self.client.indices.create(index=name, body=index_mapping)
             log.debug("Created index", index_name=name)
-        except ElasticsearchException as e:
+        except (ApiError, TransportError) as e:
             if isinstance(e, TransportError):
                 # If the index already exists, ignore the error. This case
                 # can happen if we have multiple processes that try to create
@@ -171,19 +169,22 @@ manager = _ESManager()
 _PREFIX_INDEX = {
     "event": _Indices.EVENTS,
     "analysis": _Indices.ANALYSES,
-    "task": _Indices.TASKS
+    "task": _Indices.TASKS,
 }
 
 _INDEX_KEYWORDS = {
     _Indices.EVENTS: ("task_id", "analysis_id", "type", "subtype"),
     _Indices.ANALYSES: (
-        "analysis_id", "category", "submitted.md5", "submitted.sha1",
-        "submitted.sha256", "target.md5", "target.sha1",
-        "target.sha256"
+        "analysis_id",
+        "category",
+        "submitted.md5",
+        "submitted.sha1",
+        "submitted.sha256",
+        "target.md5",
+        "target.sha1",
+        "target.sha256",
     ),
-    _Indices.TASKS: (
-        "task_id", "analysis_id", "tags", "ttps"
-    )
+    _Indices.TASKS: ("task_id", "analysis_id", "tags", "ttps"),
 }
 
 _FILTER_PREFIXES = tuple(_PREFIX_INDEX.keys())
@@ -194,14 +195,13 @@ def _make_ts():
 
 
 def index_events(analysis_id, eventtype, values, subtype=None, task_id=None):
-
     doc_id = f"{task_id}{eventtype}{subtype if subtype else ''}"
 
     body = {
         "ts": _make_ts(),
         "analysis_id": analysis_id,
         "type": eventtype,
-        "values": values
+        "values": values,
     }
     if task_id:
         body["task_id"] = task_id
@@ -212,10 +212,8 @@ def index_events(analysis_id, eventtype, values, subtype=None, task_id=None):
         manager.client.index(
             index=manager.index_realname(_Indices.EVENTS), id=doc_id, body=body
         )
-    except ElasticsearchException as e:
-        raise ElasticSearchError(
-            f"Failed to create event entry in Elasticsearch. {e}"
-        )
+    except (ApiError, TransportError) as e:
+        raise ElasticSearchError(f"Failed to create event entry in Elasticsearch. {e}")
 
 
 def index_analysis(analysis, target, signatures, tags, families, ttps):
@@ -223,25 +221,17 @@ def index_analysis(analysis, target, signatures, tags, families, ttps):
         "ts": _make_ts(),
         "analysis_id": analysis.id,
         "category": analysis.category,
-        "settings": {
-            "timeout": analysis.settings.timeout
-        },
-        "signatures": {
-            "name": [sig.short_description for sig in signatures]
-        },
+        "settings": {"timeout": analysis.settings.timeout},
+        "signatures": {"name": [sig.short_description for sig in signatures]},
         "tags": tags,
         "ttps": ttps,
-        "families": families
+        "families": families,
     }
 
     submitted = analysis.submitted
     if analysis.category == "url":
-        body["submitted"] = {
-            "url": submitted.url
-        }
-        body["target"] = {
-            "url": target.url
-        }
+        body["submitted"] = {"url": submitted.url}
+        body["target"] = {"url": target.url}
     elif analysis.category == "file":
         body["submitted"] = {
             "filename": submitted.filename,
@@ -250,7 +240,7 @@ def index_analysis(analysis, target, signatures, tags, families, ttps):
             "sha1": submitted.sha1,
             "sha256": submitted.sha256,
             "media_type": submitted.media_type,
-            "magic": submitted.type
+            "magic": submitted.type,
         }
         body["target"] = {
             "filename": target.filename,
@@ -260,21 +250,21 @@ def index_analysis(analysis, target, signatures, tags, families, ttps):
             "sha256": target.sha256,
             "media_type": target.media_type,
             "magic": target.filetype,
-            "fileext": Path(target.filename).suffix.strip(".")
+            "fileext": Path(target.filename).suffix.strip("."),
         }
         try:
             manager.client.index(
                 index=manager.index_realname(_Indices.ANALYSES),
-                id=analysis.id, body=body
+                id=analysis.id,
+                body=body,
             )
-        except ElasticsearchException as e:
+        except (ApiError, TransportError) as e:
             raise ElasticSearchError(
                 f"Failed to create analysis entry in Elasticsearch. {e}"
             )
 
 
-def index_task(task, score, machine, signatures, tags, families,
-               ttps):
+def index_task(task, score, machine, signatures, tags, families, ttps):
     body = {
         "ts": _make_ts(),
         "task_id": task.id,
@@ -283,24 +273,20 @@ def index_task(task, score, machine, signatures, tags, families,
         "machine": {
             "platform": machine.platform,
             "os_version": machine.os_version,
-            "tags": list(machine.tags)
+            "tags": list(machine.tags),
         },
         "tags": tags,
         "families": families,
         "ttps": ttps,
-        "signatures": {
-            "name": [sig.short_description for sig in signatures]
-        }
+        "signatures": {"name": [sig.short_description for sig in signatures]},
     }
 
     try:
         manager.client.index(
             index=manager.index_realname(_Indices.TASKS), id=task.id, body=body
         )
-    except ElasticsearchException as e:
-        raise ElasticSearchError(
-            f"Failed to create task entry in Elasticsearch. {e}"
-        )
+    except (ApiError, TransportError) as e:
+        raise ElasticSearchError(f"Failed to create task entry in Elasticsearch. {e}")
 
 
 _unique_script_template = """
@@ -315,7 +301,10 @@ def update_analysis(analysis_id, tags=[], families=[], ttps=[], score=0):
     params = {}
     script = ""
     for key, values in (
-            ("tags", tags), ("families", families), ("ttps", ttps), ("score", score)
+        ("tags", tags),
+        ("families", families),
+        ("ttps", ttps),
+        ("score", score),
     ):
         if not values:
             continue
@@ -328,15 +317,11 @@ def update_analysis(analysis_id, tags=[], families=[], ttps=[], score=0):
 
     try:
         manager.client.update(
-            index=manager.index_realname(_Indices.ANALYSES), id=analysis_id,
-            body={
-                "script": {
-                    "source": script,
-                    "params": params
-                }
-            }
+            index=manager.index_realname(_Indices.ANALYSES),
+            id=analysis_id,
+            body={"script": {"source": script, "params": params}},
         )
-    except ElasticsearchException as e:
+    except (ApiError, TransportError) as e:
         raise ElasticSearchError(
             f"Failed to update analysis entry in Elasticsearch. {e}"
         )
@@ -347,15 +332,12 @@ def _unique_values_field(index, field, start, end):
     end_ts = int(end.timestamp() * 1000)
 
     query = elasticsearch_dsl.Search(using=manager.client, index=index).filter(
-        "range", ts={
-            "gte": start_ts,
-            "lte": end_ts
-        }
+        "range", ts={"gte": start_ts, "lte": end_ts}
     )
     query.aggs.bucket("valcount", elasticsearch_dsl.A("terms", field=field))
     try:
         response = query.execute()
-    except ElasticsearchException as e:
+    except (ApiError, TransportError) as e:
         raise ElasticSearchError(
             f"Failed to read unique values of field: {field} on index {index} "
             f"from {start} to {end}. {e}"
@@ -370,8 +352,7 @@ def _unique_values_field(index, field, start, end):
 
 def analysis_unique_values_field(field, start, end):
     return _unique_values_field(
-        manager.index_realname(_Indices.ANALYSES), field=field, start=start,
-        end=end
+        manager.index_realname(_Indices.ANALYSES), field=field, start=start, end=end
     )
 
 
@@ -380,14 +361,11 @@ def _count_index_fieldvals(index, field, value, start, end):
     end_ts = int(end.timestamp() * 1000)
     query = elasticsearch_dsl.Search(using=manager.client, index=index)
     query = query.query("term", **{field: value}).filter(
-        "range", ts={
-            "gte": start_ts,
-            "lte": end_ts
-        }
+        "range", ts={"gte": start_ts, "lte": end_ts}
     )
     try:
-       return query.count()
-    except ElasticsearchException as e:
+        return query.count()
+    except (ApiError, TransportError) as e:
         raise ElasticSearchError(
             f"Failed to count values of field: {field} on index {index} "
             f"from {start} to {end}. {e}"
@@ -396,20 +374,22 @@ def _count_index_fieldvals(index, field, value, start, end):
 
 def analysis_count_field_val(field, value, start, end):
     return _count_index_fieldvals(
-        manager.index_realname(_Indices.ANALYSES), field=field, value=value,
-        start=start, end=end
+        manager.index_realname(_Indices.ANALYSES),
+        field=field,
+        value=value,
+        start=start,
+        end=end,
     )
 
 
 _query_pattern = {
     "analysis.target.md5": re.compile("^[a-f0-9]{32}$", re.IGNORECASE),
     "analysis.target.sha1": re.compile("^[a-f0-9]{40}$", re.IGNORECASE),
-    "analysis.target.sha256": re.compile("^[a-f0-9]{64}$", re.IGNORECASE)
+    "analysis.target.sha256": re.compile("^[a-f0-9]{64}$", re.IGNORECASE),
 }
 
 
 class _SearchQueryParser:
-
     def __init__(self, query):
         self._raw = query
 
@@ -417,7 +397,7 @@ class _SearchQueryParser:
         self._search_preparators = {
             "events": self._add_event_search,
             "analyses": self._add_analysis_search,
-            "tasks": self._add_task_search
+            "tasks": self._add_task_search,
         }
 
         self.parse()
@@ -431,7 +411,7 @@ class _SearchQueryParser:
             search = {
                 "type": filter_fields[0],
                 "subtype": filter_fields[1],
-                "values": argsstr
+                "values": argsstr,
             }
 
         if search:
@@ -441,9 +421,7 @@ class _SearchQueryParser:
             self._searches.setdefault(_Indices.EVENTS, []).append(search)
             return
 
-        raise SearchError(
-            f"No further subkey possible after {filter_fields[1]!r}"
-        )
+        raise SearchError(f"No further subkey possible after {filter_fields[1]!r}")
 
     def _add_task_search(self, filter_fields, argsstr):
         fields_path = ".".join(filter_fields)
@@ -462,7 +440,6 @@ class _SearchQueryParser:
         searches.append(search)
 
     def _add_analysis_search(self, filter_fields, argsstr):
-
         fields_path = ".".join(filter_fields)
         search = {"path": fields_path, "value": argsstr}
 
@@ -512,8 +489,7 @@ class _SearchQueryParser:
         filters, args_str = self._split_filter(filter_str)
         if len(filters) < 2:
             raise SearchError(
-                f"Filter prefix not followed by actual filter fields. "
-                f"{filter_str!r}"
+                f"Filter prefix not followed by actual filter fields. {filter_str!r}"
             )
 
         prefix = filters[0]
@@ -571,7 +547,6 @@ class _SearchQueryParser:
 
 
 class _SearchResultTracker:
-
     def __init__(self):
         self._analyses = OrderedDict()
         self._tasks = OrderedDict()
@@ -651,30 +626,29 @@ class _SearchResultTracker:
                 if analysis_resuls:
                     values["matches"].extend(analysis_resuls)
 
-                results.append({
-                    "analysis_id": analysis_id,
-                    "task_id": task_id,
-                    "matches": values["matches"]
-                })
+                results.append(
+                    {
+                        "analysis_id": analysis_id,
+                        "task_id": task_id,
+                        "matches": values["matches"],
+                    }
+                )
 
         elif self._analyses:
             for analysis_id, matches in self._analyses.items():
-                results.append({
-                    "analysis_id": analysis_id,
-                    "task_id": None,
-                    "matches": matches
-                })
+                results.append(
+                    {"analysis_id": analysis_id, "task_id": None, "matches": matches}
+                )
 
         return {
             "possible": self.possible_hits,
             "offset": self._offset,
             "count": len(results),
-            "matches": results
+            "matches": results,
         }
 
 
 class _SearchQueryRunner:
-
     def __init__(self, searchquery, limit=5, offset=0):
         self._query = searchquery
         self.limit = limit
@@ -703,7 +677,8 @@ class _SearchQueryRunner:
     def _execute_initial(self):
         return self._execute_query(
             self._add_highlight_query(self._initial),
-            limit=self._init_query_limit, offset=self._init_query_offset
+            limit=self._init_query_limit,
+            offset=self._init_query_offset,
         )
 
     def _execute_secondaries(self, analysis_id):
@@ -735,9 +710,7 @@ class _SearchQueryRunner:
 
     def _secondary_find_ids(self, query):
         query = query.source(includes=["analysis_id"])
-        hits, hitcount = self._execute_query(
-            query, limit=manager.max_result_window
-        )
+        hits, hitcount = self._execute_query(query, limit=manager.max_result_window)
 
         if not hitcount:
             return set()
@@ -752,17 +725,15 @@ class _SearchQueryRunner:
         return True
 
     def _add_highlight_query(self, query):
-        return query.highlight(
-            "*", fragment_size=255, pre_tags="", post_tags=""
-        )
+        return query.highlight("*", fragment_size=255, pre_tags="", post_tags="")
 
     def _execute_query(self, query, limit=5, offset=0):
-        query = query[offset:offset + limit]
+        query = query[offset : offset + limit]
         query = query.sort("-ts")
         log.debug("Generated query.", query=query.to_dict())
         try:
             response = query.execute()
-        except ElasticsearchException as e:
+        except (ApiError, TransportError) as e:
             raise ElasticSearchError(f"Error during query execution: {e}")
 
         return response.hits, response.hits.total.value
@@ -788,10 +759,7 @@ class _SearchQueryRunner:
                 self._add_secondary(query)
 
     def _add_secondary(self, query):
-        self._secondaries.append({
-            "query": query,
-            "ids": set()
-        })
+        self._secondaries.append({"query": query, "ids": set()})
 
     def _make_termsearch(self, query, path, value):
         return query.query("term", **{path: value})
@@ -804,8 +772,7 @@ class _SearchQueryRunner:
 
     def _make_tasks_query(self, searches):
         query = elasticsearch_dsl.Search(
-            using=manager.client,
-            index=manager.index_realname(_Indices.TASKS)
+            using=manager.client, index=manager.index_realname(_Indices.TASKS)
         )
         for search in searches:
             path = search["path"]
@@ -821,8 +788,7 @@ class _SearchQueryRunner:
 
     def _make_analyses_query(self, searches):
         query = elasticsearch_dsl.Search(
-            using=manager.client,
-            index=manager.index_realname(_Indices.ANALYSES)
+            using=manager.client, index=manager.index_realname(_Indices.ANALYSES)
         )
         for search in searches:
             path = search["path"]
@@ -879,14 +845,13 @@ class _SearchQueryRunner:
                 break
 
             # No matches are found for the initial search. Stop.
-            if not initial_hitcount or self.original_offset >=\
-                    initial_hitcount:
+            if not initial_hitcount or self.original_offset >= initial_hitcount:
                 break
 
             # If no secondary queries have been given. Return the matches
             # for the initial query.
             if not self._secondaries:
-                limited = hits[0:self.limit]
+                limited = hits[0 : self.limit]
                 response_offset = len(limited)
                 self._resulttracker.store_results(limited)
                 break
@@ -924,9 +889,7 @@ class _SearchQueryRunner:
                     self._resulttracker.store_results(hits)
 
                 # Store the matched information of the initial query
-                self._resulttracker.store_results(
-                    [initial_id_result[analysis_id]]
-                )
+                self._resulttracker.store_results([initial_id_result[analysis_id]])
 
                 if full_matches >= self.limit:
                     break
