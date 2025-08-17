@@ -47,12 +47,10 @@ typeloaders = {
             "hosts": config.List(config.HTTPUrl, ["http://127.0.0.1:9200"]),
             "user": config.String(allow_empty=True),
             "password": config.String(allow_empty=True),
-            "ca_certs": config.String(
-                allow_empty=True, default_val="/etc/ssl/certs/ca-certificates.crt"
-            ),
-            "web_search": {"enabled": config.Boolean(default_val=False)},
+            "ca_certs": config.String(allow_empty=True),
+            "web_search": {"enabled": config.Boolean(default_val=True)},
             "statistics": {
-                "enabled": config.Boolean(default_val=False),
+                "enabled": config.Boolean(default_val=True),
                 "charts": config.DictList(
                     child_typeloaders={
                         "chart_type": _ChartType(),
