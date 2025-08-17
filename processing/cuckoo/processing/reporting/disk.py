@@ -40,6 +40,8 @@ class JSONDump(Reporter):
             "misp",
             "intelmq",
             "command",
+            "anubi",
+            "strings"
         ]
 
         # Pre might change settings such as launch args for specific chosen
