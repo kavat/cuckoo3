@@ -13,14 +13,14 @@
         <td>Hash</td>
         <td>
           {% if pre.anubi.hash_scan == "No malware detected" %}
-            {{ pre.anubi.hash_scan }}
-          {% else ‰}
+            No malware detected
+          {% else %}
             <ul>
             {% for m in pre.anubi.hash_scan %}
               <li> {{ m }}</li>
             {% endfor %}
             </ul>
-          {‰ endif ‰}
+          {% endif %}
         </td>
       </tr>
       <tr>
@@ -28,14 +28,14 @@
         <td>Yara</td>
         <td>
           {% if pre.anubi.yara_scan == "No Yara rule triggered" %}
-            {{ pre.anubi.yara_scan }}
-          {% else ‰}
+            No Yara rule triggered
+          {% else %}
             <ul>
             {% for m in pre.anubi.yara_scan %}
               <li> {{ m }}</li>
             {% endfor %}
             </ul>
-          {‰ endif ‰}
+          {% endif %}
         </td>
       </tr>
     </tbody>
