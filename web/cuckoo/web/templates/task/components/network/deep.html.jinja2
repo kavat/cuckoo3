@@ -1,0 +1,36 @@
+{# search box #}
+<div class="box has-background-light has-border no-radius is-sticky no-margin" style="top: 2.7rem">
+  <div class="field no-margin">
+    <div class="control has-addon">
+      <span class="addon has-half-opacity">
+        <i class="fas fa-search"></i>
+      </span>
+      <input type="search" class="input" placeholder="Type to filter by string occurence" data-enhance="#network-deep-data" />
+    </div>
+  </div>
+</div>
+
+<p class="has-half-opacity">List of ALL packets excluded among 192.168.30.0/24.</p>
+
+<div id="network-deep-data">
+  {% for deep in report.network.deep %}
+    {% set search_values = [deep.srcip, deep.srcport, deep.dstip, deep.dstport, deep.proto] %}
+    {% if deep.srcip.startswith('192.168.30.') == False and deep.dstip.startswith('192.168.30.') == False %}
+      <div class="box {% if loop.first %}is-grouped{% endif %} {% if loop.last %}has-shadow{% endif %} has-border" data-search-value="{{ search_values|join(' ') }}">
+        <div class="columns is-gapless is-vcenter has-text-small">
+          <div class="column has-margin-right">
+            <strong>From:</strong> <span class="is-monospace">{{ deep.srcip }}:{{ deep.srcport }}</span>
+          </div>
+          <div class="column">
+            <strong>To:</strong> <span class="is-monospace">{{ deep.dstip }}:{{ deep.dstport }}</span>
+          </div>
+        </div>
+        <div class="has-margin-top has-text-small">
+          <p class="no-margin"><strong class="has-half-opacity">Protocol</strong> <span class="tag">{{ deep.proto }}</span></p>
+          <p class="no-margin"><strong class="has-half-opacity">Size</strong> <span class="tag">{{ deep.size }} bytes</span></p>
+          <p class="no-margin"><strong class="has-half-opacity">Reputation</strong> <span class="tag">{{ deep.detection }}</span></p>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
