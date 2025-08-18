@@ -17,6 +17,7 @@ class AIInfoGather(Processor):
     CATEGORY = ["file", "url"]
     KEY = "ai"
 
+    @classmethod
     def enabled(cls):
         return cfg("ai.yaml", "processing", "enabled", subpkg="processing")
 
