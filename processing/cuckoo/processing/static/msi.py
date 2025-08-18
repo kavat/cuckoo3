@@ -147,7 +147,7 @@ class MSIFile(Processor):
       lines = output.splitlines()
       results = []
       for line in lines[1:]:  # salta intestazione
-        if any(s in line.lower() for s in cfg("cuckoo.yaml", "suspicious_strings"):
+        if any(s in line.lower() for s in cfg("cuckoo.yaml", "suspicious_strings")):
           results.append({'stringa': line.strip(), 'sospetto': True})
       return results or [{'info': 'No suspicious CustomAction has been found'}]
     except Exception as e:
