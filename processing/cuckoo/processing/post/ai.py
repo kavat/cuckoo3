@@ -39,6 +39,13 @@ class AIInfoGather(Processor):
         with open(AnalysisPaths._path(self.ctx.analysis.id, "pre.json")) as f:
             d = json.load(f)
 
+            if 'static' in d and 'pe' in d['static']:
+                content = f"{content}\n### START GENERIC PARAGRAPH ###"
+                content = f"{content}\nHEADER=OS platform;SHA512 file signature"
+                content = f"{content}\nDESCRIPTION=Initial paragraph used to identify operative system used and SHA512 of file"
+                content = f"{content}\nROW=windows;{d['target']['sha512']}"
+                content = f"{content}\n### END GENERIC PARAGRAPH ###"
+
             if 'static' in d and 'pe' in d['static'] and 'peid_signatures' in d['static']['pe']:
                 content = f"{content}\n### START PEID SIGNATURES PARAGRAPH ###"
                 count_signatures = 1
@@ -100,13 +107,17 @@ class AIInfoGather(Processor):
                 "- ogni paragrafo terminerà con ### END NOME PARAGRAPH ###\n"
                 "- ogni paragrafo conterrà la riga DESCRIPTION dove ti spiegherà il significato del paragrafo\n"
                 "- ogni paragrafo conterrà la riga HEADER dove se vuota non dovrai interpretare quanto sotto come un CSV, altrimenti dovrai interpretarlo come un CSV suddiviso da ; e ogni campo valore corrisponderà al rispettivo campo di intestazione\n"
-                "- ogni paragrafo conterrà una o più righe ROW dove saranno riportati i valori da analizzare"
+                "- ogni paragrafo conterrà una o più righe ROW dove saranno riportati i valori da analizzare\n"
+                "Dell'elaborato prodotto, ritorna una doppia versione, la prima in lingua italiana e la seconda in lingua inglese. Separa l'output tra le due versioni usando come separatore l'occorrenza di caratteri ___|||___"
             )
             
             model = genai.GenerativeModel(self.gemini_api_model)
             response = model.generate_content(prompt_model + "\n\n" + content)
             return {
-                "gemini_report": response.text
+                "gemini_report": {
+                    "it": response.text.split('___|||___')[0],
+                    "en": response.text.split('___|||___')[1]
+                }
             }
         except AIError as e:
             self.ctx.log.warning("Failed to retrieve AI report", error=e)
