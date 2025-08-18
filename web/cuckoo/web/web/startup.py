@@ -51,7 +51,7 @@ def _init_elasticsearch_web():
         hosts,
         indices,
         max_result_window=max_window,
-        create_missing_indices=False,
+        create_missing_indices=True,
         user=user,
         password=password,
         ca_certs=ca_certs,

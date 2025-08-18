@@ -42,7 +42,7 @@ def init_elasticsearch(
     indice_names,
     timeout=300,
     max_result_window=10000,
-    create_missing_indices=False,
+    create_missing_indices=True,
     user="",
     password="",
     ca_certs="",
