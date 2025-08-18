@@ -54,7 +54,7 @@ class AIInfoGather(Processor):
                 content = f"{content}\nHEADER=imported dll name;imported function name;imported function address"
                 for pe_import in d['static']['pe']['pe_imports']:
                     for import_f in pe_import['imports']:
-                        content = f"{content}\nROW={pe_import['dll']};{import_f['name']};{import_f['address']}")
+                        content = f"{content}\nROW={pe_import['dll']};{import_f['name']};{import_f['address']}"
                 content = f"{content}\n### END PE IMPORTS PARAGRAPH ###"
 
             if 'static' in d and 'pe' in d['static'] and 'pe_exports' in d['static']['pe']:
