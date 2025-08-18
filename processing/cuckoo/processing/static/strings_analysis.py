@@ -6,14 +6,8 @@ import string
 import subprocess
 
 from optparse import OptionParser
+from cuckoo.common.config import cfg
 
-SUSPICIOUS_STRINGS = [
-  'powershell', 'cmd.exe', 'regsvr32', 'rundll32',
-  'mshta', 'certutil', 'base64', 'wget', 'curl',
-  'vbs', 'jscript', 'wscript', 'cscript', "wscript",
-  "Invoke-", "DownloadString", "CreateObject", "WinExec", "ShellExecute",
-  "net user", "net localgroup", "schtasks", "bypass", "obfuscate"
-]
 CHAR_BEFORE_AFTER = 20
 
 def find_strings(filename, patterns, min_length=4):
@@ -140,7 +134,7 @@ def StringsDetonation(filename, log_handler, errtracker_handler):
   lines = output.splitlines()
   rit['occurrences']['suspicious_string'] = []
   for line in lines:
-    for pattern in SUSPICIOUS_STRINGS:
+    for pattern in cfg("cuckoo.yaml", "suspicious_strings"):
       if pattern in line.lower():
         rit['occurrences']['suspicious_string'].append(f"{pattern} in {prendi_tutti_contesti(line.lower(), pattern, CHAR_BEFORE_AFTER)}")
 

@@ -19,16 +19,10 @@ from ..static.pdf import PDFFile
 from ..static.elf import ElfFile
 
 from cuckoo.common.external_interactions import anubi_analyze_single_file
+from cuckoo.common.config import cfg
 
 from pathlib import Path
 
-SUSPICIOUS_STRINGS = [
-  'powershell', 'cmd.exe', 'regsvr32', 'rundll32',
-  'mshta', 'certutil', 'base64', 'wget', 'curl',
-  'vbs', 'jscript', 'wscript', 'cscript', "wscript",
-  "Invoke-", "DownloadString", "CreateObject", "WinExec", "ShellExecute",
-  "net user", "net localgroup", "schtasks", "bypass", "obfuscate"
-]
 CHAR_BEFORE_AFTER = 20
 
 
@@ -151,7 +145,7 @@ class TarFile(Processor):
     lines = output.splitlines()
     suspicious = []
     for line in lines:
-      for pattern in SUSPICIOUS_STRINGS:
+      for pattern in cfg("cuckoo.yaml", "suspicious_strings"):
         if pattern in line.lower():
           suspicious.append({'sospetto': True, 'pattern': pattern, 'occurrences': self.prendi_tutti_contesti(line.lower(), pattern, CHAR_BEFORE_AFTER)})
     return suspicious or [{'info': 'No suspicious flow has been found'}]
@@ -162,7 +156,7 @@ class TarFile(Processor):
     lines = output.splitlines()
     findings = []
     for line in lines:
-      for pattern in SUSPICIOUS_STRINGS:
+      for pattern in cfg("cuckoo.yaml", "suspicious_strings"):
         if pattern in line.lower():
           findings.append({'sospetto': True, 'pattern': pattern, 'occurrences': self.prendi_tutti_contesti(line.lower(), pattern, CHAR_BEFORE_AFTER)})
     return findings or [{'info': 'No suspicious string has been found'}]

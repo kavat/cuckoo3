@@ -43,6 +43,9 @@ class Machinery(config.String):
 exclude_autoload = ["distributed.yaml"]
 typeloaders = {
     "cuckoo.yaml": {
+        "suspicious_strings": config.List(
+            config.String, default_val=["powershell", "cmd.exe", "regsvr32", "rundll32", "mshta", "certutil", "base64", "wget", "curl", "vbs", "jscript", "wscript", "cscript", "wscript", "Invoke-", "DownloadString", "CreateObject", "WinExec", "ShellExecute", "net user", "net localgroup", "schtasks", "bypass", "obfuscate"]
+        ),
         "machineries": config.List(Machinery, value=["qemu"]),
         "resultserver": {
             "listen_ip": config.String(default_val="192.168.30.1"),

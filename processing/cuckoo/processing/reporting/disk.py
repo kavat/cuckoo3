@@ -80,6 +80,7 @@ class JSONDump(Reporter):
             "intelmq",
             "screenshot",
             "suricata",
+            "ai"
         ]
 
         post_report = {

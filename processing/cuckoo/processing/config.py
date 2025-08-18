@@ -179,6 +179,13 @@ typeloaders = {
             },
         },
     },
+    "ai.yaml": {
+        "processing": {
+            "enabled": config.Boolean(default_val=False),
+            "gemini_api_key": config.String(default_val=""),
+            "gemini_api_model": config.String(default_val="gemini-2.5-flash")
+        }
+    },
     "intelmq.yaml": {
         "processing": {
             "enabled": config.Boolean(default_val=False),
