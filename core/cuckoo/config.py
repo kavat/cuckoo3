@@ -46,6 +46,9 @@ typeloaders = {
         "suspicious_strings": config.List(
             config.String, default_val=["powershell", "cmd.exe", "regsvr32", "rundll32", "mshta", "certutil", "base64", "wget", "curl", "vbs", "jscript", "wscript", "cscript", "wscript", "Invoke-", "DownloadString", "CreateObject", "WinExec", "ShellExecute", "net user", "net localgroup", "schtasks", "bypass", "obfuscate"]
         ),
+        "suspicious_functions": config.List(
+            config.String, default_val=['system', 'execve', 'popen', 'fork', 'vfork', 'clone', 'socket', 'connect', 'send', 'recv', 'bind', 'listen', 'dlopen', 'dlsym', 'mprotect', 'ptrace', 'open', 'read', 'write', 'unlink', 'chmod', 'fchmod', 'chown']
+        ),
         "machineries": config.List(Machinery, value=["qemu"]),
         "resultserver": {
             "listen_ip": config.String(default_val="192.168.30.1"),

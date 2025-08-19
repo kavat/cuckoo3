@@ -1,0 +1,20 @@
+{% call ui_box(title="Gemini", has_padding=False) %}
+
+  <table class="table has-striped-rows">
+    <tbody>
+      <tr>
+        <td>Italian</td>
+      </tr>
+      <tr>
+        <td>{{ post.ai.gemini_report.it|safe }}</td>
+      </tr>
+      <tr>
+        <td>English</td>
+      </tr>
+      <tr>
+        <td>{{ post.ai.gemini_report.en|safe }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+{% endcall %}

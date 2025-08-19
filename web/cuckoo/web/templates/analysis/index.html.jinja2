@@ -184,6 +184,13 @@
           </div>
         {% endif %}
 
+        {# tab: post.ai.gemini_report #}
+        {% if post.ai and post.ai.gemini_report %}
+          <div role="region" id="gemini" hidden>
+            {% include "analysis/components/gemini.html.jinja2" %}
+          </div>
+        {% endif %}
+
         {# tab: pre.anubi #}
         {% if pre.anubi %}
           <div role="region" id="anubi" hidden>

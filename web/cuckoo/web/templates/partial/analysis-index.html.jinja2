@@ -15,6 +15,11 @@
                 <a role="tab" href="#anubi">Anubi</a>
               </li>
             {% endif %}
+            {% if post.ai and post.ai.gemini_report %}
+              <li>
+                <a role="tab" href="#gemini">Gemini</a>
+              </li>
+            {% endif %}
             {% if pre.static and pre.static.pdf %}
               <li>
                 <a role="tab" href="#pdffiles">PDF File</a>

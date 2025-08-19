@@ -13,6 +13,7 @@ pip install -U pyenchant
 pip install -U google-generativeai
 pip install -U google-genai
 pip install -U pyexecjs
+pip install -U pypandoc
 # TMP solution until new versions of sflock etc are released to PyPI
 pip install -U git+https://github.com/cert-ee/peepdf
 pip install -U git+https://github.com/cert-ee/sflock

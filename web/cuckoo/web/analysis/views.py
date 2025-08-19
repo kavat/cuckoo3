@@ -5,6 +5,7 @@ from django.http import HttpResponseServerError, HttpResponseNotFound
 from django.shortcuts import render
 
 from cuckoo.common.analyses import States
+from cuckoo.common.storage import TaskPaths
 from cuckoo.common.result import (
     retriever, Results, ResultDoesNotExistError, InvalidResultDataError
 )
@@ -12,20 +13,18 @@ from ipaddress import ip_network, ip_address
 from ipware import get_client_ip
 from cuckoo.common.config import cfg
 
+import json
+import pypandoc
 
-SUSPICIOUS_FUNCS = [
-    'system', 'execve', 'popen', 'fork', 'vfork', 'clone',
-    'socket', 'connect', 'send', 'recv', 'bind', 'listen',
-    'dlopen', 'dlsym', 'mprotect', 'ptrace',
-    'open', 'read', 'write', 'unlink', 'chmod', 'fchmod', 'chown',
-]
 
 def index(request, analysis_id):
     try:
         result = retriever.get_analysis(
-            analysis_id, include=[Results.ANALYSIS, Results.PRE]
+            analysis_id, include=[Results.ANALYSIS, Results.TASK, Results.PRE, Results.POST]
         )
         analysis = result.analysis
+        with open(TaskPaths.report(f"{analysis_id}_1")) as f:
+            task_report = json.load(f)
     except ResultDoesNotExistError:
         return HttpResponseNotFound()
     except InvalidResultDataError as e:
@@ -42,6 +41,7 @@ def index(request, analysis_id):
 
     try:
         pre = result.pre
+        post = task_report
     except ResultDoesNotExistError:
         return HttpResponseNotFound()
     except InvalidResultDataError as e:
@@ -72,17 +72,24 @@ def index(request, analysis_id):
             func_name = v['Name']
           if 'Function' in v and tag == 'functions':
             func_name = v['Function']
-          suspected = func_name.split('@')[0] in SUSPICIOUS_FUNCS
+          suspected = func_name.split('@')[0] in cfg("cuckoo.yaml", "suspicious_functions")
           pre_postanalysis['static']['elf']['elf_analysis'][tag][k]['Suspected'] = str(suspected)
 
+    if 'ai' in post and 'gemini_report' in post['ai']:
+      gemini_report_it = pypandoc.convert_text(post['ai']['gemini_report']['it'], 'html', format='md').replace(" * ","<br>")
+      gemini_report_en = pypandoc.convert_text(post['ai']['gemini_report']['en'], 'html', format='md').replace(" * ","<br>")
+      post['ai']['gemini_report']['it'] = gemini_report_it
+      post['ai']['gemini_report']['en'] = gemini_report_en
+
     return render(
-        request, template_name="analysis/index.html.jinja2",
-        context={
-             "analysis": analysis.to_dict(),
-             "pre": pre_postanalysis,
-             "analysis_id": analysis_id,
-             "filedownload_allowed": isAllowed
-             }
+      request, template_name="analysis/index.html.jinja2",
+      context={
+        "analysis": analysis.to_dict(),
+        "pre": pre_postanalysis,
+        "post": post,
+        "analysis_id": analysis_id,
+        "filedownload_allowed": isAllowed
+      }
     )
 
 
