@@ -79,6 +79,7 @@ typeloaders = {
     "virustotal.yaml": {
         "enabled": config.Boolean(default_val=True),
         "key": config.String(
+            allow_empty=True,
             default_val="",
             sensitive=True,
         ),
