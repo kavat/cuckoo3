@@ -42,13 +42,15 @@ class AIInfoGather(Processor):
             if 'static' in d and 'pe' in d['static']:
                 content = f"{content}\n### START GENERIC PARAGRAPH ###"
                 content = f"{content}\nDESCRIPTION=Initial paragraph used to identify operative system used and SHA512 of file"
-                content = f"{content}\nHEADER=OS platform;SHA512 file signature"
+                content = f"{content}\nHOWTOUSE=Use this paragraph to check online SHA512 hash"
+                content = f"{content}\nHEADER=OS platform;SHA512 file hash"
                 content = f"{content}\nROW=windows;{d['target']['sha512']}"
                 content = f"{content}\n### END GENERIC PARAGRAPH ###"
 
             if 'static' in d and 'pe' in d['static'] and 'peid_signatures' in d['static']['pe']:
-                content = f"{content}\n### START PEID SIGNATURES PARAGRAPH ###"
                 count_signatures = 1
+                content = f"{content}\n### START PEID SIGNATURES PARAGRAPH ###"
+                content = f"{content}\nHOWTOUSE=Use this paragraph to check online the signature"
                 content = f"{content}\nDESCRIPTION=PEID SIGNATURES are specific patterns or sequences of bytes within a file that indicate the presence of a particular packer or compiler"
                 content = f"{content}\nHEADER="
                 for signature in d['static']['pe']['peid_signatures']:
@@ -58,6 +60,7 @@ class AIInfoGather(Processor):
 
             if 'static' in d and 'pe' in d['static'] and 'pe_imports' in d['static']['pe']:
                 content = f"{content}\n### START PE IMPORTS PARAGRAPH ###"
+                content = f"{content}\nHOWTOUSE=Use this paragraph to check online if DLL/functions imported are used for malicious activities"
                 content = f"{content}\nDESCRIPTION=PE IMPORTS refers to the process where a program (the executable file) uses functions or data defined in other program files (typically dynamic-link libraries, or DLLs)"
                 content = f"{content}\nHEADER=imported dll name;imported function name;imported function address"
                 for pe_import in d['static']['pe']['pe_imports']:
@@ -67,6 +70,7 @@ class AIInfoGather(Processor):
 
             if 'static' in d and 'pe' in d['static'] and 'pe_exports' in d['static']['pe']:
                 content = f"{content}\n### START PE EXPORTS PARAGRAPH ###"
+                content = f"{content}\nHOWTOUSE=Use this paragraph to check online if functions exported are used for malicious activities"
                 content = f"{content}\nDESCRIPTION=PE EXPORTS refers to a list of functions and variables that are made available for use by other programs"
                 content = f"{content}\nHEADER=exported function name;exported function address"
                 for pe_export in d['static']['pe']['pe_exports']:
@@ -75,6 +79,7 @@ class AIInfoGather(Processor):
 
             if 'static' in d and 'pe' in d['static'] and 'pe_sections' in d['static']['pe']:
                 content = f"{content}\n### START PE SECTIONS PARAGRAPH ###"
+                content = f"{content}\nHOWTOUSE=Use this paragraph to check online the structure of the sections, consider dangerous entropy greater or equal to 7 as value"
                 content = f"{content}\nDESCRIPTION=PE SECTIONS are distinct blocks of memory that hold specific types of data, such as code, data, or resources"
                 content = f"{content}\nHEADER=section name;section writeble or not;section address;section size;section data size;section entropy"
                 for pe_section in d['static']['pe']['pe_sections']:
@@ -83,6 +88,7 @@ class AIInfoGather(Processor):
 
             if 'static' in d and 'pe' in d['static'] and 'pe_resources' in d['static']['pe']:
                 content = f"{content}\n### START PE RESOURCES PARAGRAPH ###"
+                content = f"{content}\nHOWTOUSE=Use this paragraph to check online if resources can be used for malicious scopes"
                 content = f"{content}\nDESCRIPTION=PE RESOURCES are non-executable data such as images, icons, strings, dialog templates, and other data essential for the program's operation"
                 content = f"{content}\nHEADER=resource name;resource offset;resource size;resource filetype"
                 for pe_resource in d['static']['pe']['pe_resources']:
@@ -105,10 +111,11 @@ class AIInfoGather(Processor):
                 "- Text contains multiple paragraphs\n"
                 "- Each paragraph begins with ### START XXXXXXXX PARAGRAPH ###\n"
                 "- Each paragraph ends with ### END XXXXXXXX PARAGRAPH ###\n"
+                "- Each paragraph contains a line starting with HOWTOUSE occurrence and aims to teach you which are the controls that I ask you to perform\n"
                 "- Each paragraph contains a line starting with DESCRIPTION occurrence explaining the meaning of the paragraph\n"
                 "- Each paragraph contains a line starting with HEADER occurrence. If it is blank, you has not consider the lines below as a CSV content. Otherwise, you has to consider the lines below a CSV content separated by ; where each value field will correspond to the respective field in HEADER line.\n"
                 "- Each paragraph contains one or more line starting with ROW occurrence that represent the values to be analysed\n"
-                "At the end of the analysis, please returns a report in output following next requirements:\n"
+                "Perform the analysis as explained before adding the scope of the software analysed if you are able to retrieve its name from SHA512 hash. At the end of the analysis, please returns a report in output following next requirements:\n"
                 "- output contains first italian version and after english one\n"
                 "- versions has to be separated by ___|||___ characters\n"
                 "- you have not to include the preamble where you summarize what I asked you to do, return only the analysis"
