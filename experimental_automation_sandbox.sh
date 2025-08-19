@@ -116,8 +116,17 @@ echo '#!/bin/bash
 chmod 666 /dev/kvm
 /opt/cuckoo3/venv/bin/vmcloak-qemubridge br0 192.168.30.1/24
 chmod u+s /usr/lib/qemu/qemu-bridge-helper
-su - cuckoo -c "/opt/cuckoo3/venv/bin/cuckoo --debug --cancel-abandoned"' >> /usr/local/bin/start_cuckoo
+su - cuckoo -c "/opt/cuckoo3/venv/bin/cuckoo --debug --cancel-abandoned"' > /usr/local/bin/start_cuckoo
 chmod +x /usr/local/bin/start_cuckoo
+
+# Creating executable to monitor all logs
+echo '#!/bin/bash
+tail -f /tmp/cuckooweb-uwsgi.log /home/cuckoo/.cuckoocwd/log/* /opt/anubi/log/*' > /usr/local/bin/cuckoo_logs
+chmod +x /usr/local/bin/cuckoo_logs
+
+# Creating executable to delete specific analysis
+echo '#!/bin/bash sudo -u cuckoo /opt/cuckoo3/venv/bin/cuckoocleanup deleteid $1' > /usr/local/bin/cuckoo_delete_analysis
+chmod +x /usr/local/bin/cuckoo_delete_analysis
 
 # Creating bridge first time
 /opt/cuckoo3/venv/bin/vmcloak-qemubridge br0 192.168.30.1/24

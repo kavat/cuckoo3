@@ -55,6 +55,29 @@ def start_export(older_than_days, loglevel, without_confirm=False):
             raise StartupError(e)
 
 
+def delete_analysis_by_id(analysis_id, log_level):
+    from cuckoo.common.log import set_logger_level
+    from cuckoo.common.startup import init_global_logging, init_database
+    from cuckoo.common.clients import APIClient
+    from cuckoo.common.config import (
+        cfg,
+        MissingConfigurationFileError,
+        ConfigurationError,
+    )
+    from cuckoo.common.storage import Paths
+    from ..clean import find_analyses_hours, AnalysisRemoteExporter, CleanerError
+
+    init_global_logging(loglevel, Paths.log("delete.log"))
+    set_logger_level("urllib3.connectionpool", logging.ERROR)
+
+    init_database()
+
+    try:
+        delete_analysis_db(analysis_id)
+        delete_analysis_disk(analysis_id)
+    except (ResultDoesNotExistsError):
+        print_info(f"Analysis {analysis_id} not found")
+
 def delete_analyses(state, older_than_hours, loglevel, without_confirm=False):
     from cuckoo.common.log import set_logger_level
     from cuckoo.common.startup import init_global_logging, init_database
@@ -163,5 +186,20 @@ def delete(ctx, state, hours, yes):
 
     try:
         delete_analyses(state, hours, loglevel=ctx.parent.loglevel, without_confirm=yes)
+    except StartupError as e:
+        exit_error(e)
+
+@main.command("deleteid")
+@click.argument("analysis_id", type=str)
+@click.pass_context
+def deleteid(ctx, analysis_id):
+    """Delete specific analysis identified by its ID
+
+    \b
+    ID  analysis id to delete
+    """
+
+    try:
+        delete_analysis_by_id(analysis_id, loglevel=ctx.parent.loglevel)
     except StartupError as e:
         exit_error(e)

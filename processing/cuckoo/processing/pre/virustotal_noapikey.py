@@ -43,13 +43,13 @@ class VirustotalNoAPIKey(Processor):
     return self.user_agents[randrange(0, len(self.user_agents))]
 
   def createHeaders(self):
-    self.request_headers = virustotal_request_headers.copy()
+    self.request_headers = self.virustotal_request_headers.copy()
     self.request_headers['X-VT-Anti-Abuse-Header'] = self.generateAntiAbuseHeader()
     self.request_headers['User-Agent'] = self.generateUserAgentHeader()
 
   def request(self, pattern):
     self.createHeaders()
-    response = requests.get(self.url.format(pattern), headers=self.request_headers, cookies=virustotal_cookies)
+    response = requests.get(self.url.format(pattern), headers=self.request_headers, cookies=self.virustotal_cookies)
     avs = {}
     try:
       r = json.loads(response.content)
