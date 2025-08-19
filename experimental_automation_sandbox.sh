@@ -31,7 +31,9 @@ xpack.security.enabled: false
 xpack.security.enrollment.enabled: false
 xpack.security.http.ssl.enabled: false
 xpack.security.transport.ssl.enabled: false
-cluster.initial_master_nodes: [\"$(hostname)\"]
+cluster.routing.allocation.disk.watermark.low: 97%
+cluster.routing.allocation.disk.watermark.high: 98%
+cluster.routing.allocation.disk.watermark.flood_stage: 99%
 http.host: 127.0.0.1" > /etc/elasticsearch/elasticsearch.yml
 
 # Enabling and restarting ELK service
@@ -125,18 +127,18 @@ chmod u+s /usr/lib/qemu/qemu-bridge-helper
 
 # Building VM using vmcloak project
 mkdir /mnt/win10x64
-sudo -u cuckoo /opt/cuckoo3/venv/bin/vmcloak isodownload --win10x64 --download-to /home/cuckoo/win10x64.iso
+su - cuckoo
+/opt/cuckoo3/venv/bin/vmcloak isodownload --win10x64 --download-to /home/cuckoo/win10x64.iso
 mount -o loop,ro /home/cuckoo/win10x64.iso /mnt/win10x64
-sudo -u cuckoo /opt/cuckoo3/venv/bin/vmcloak --debug init --win10x64 --hddsize 128 --cpus 2 --ramsize 4096 --network 192.168.30.0/24 --vm qemu --ip 192.168.30.2 --iso-mount /mnt/win10x64 win10base br0
-sudo -u cuckoo /opt/cuckoo3/venv/bin/vmcloak --debug install win10base dotnet:4.7.2 java:8u151 vcredist:2013 vcredist:2019 carootcert firefox tightvnc wallpaper uninstallsw disableservices
-sudo -u cuckoo /opt/cuckoo3/venv/bin/vmcloak --debug snapshot --count 1 win10base win10vm_192.168.30.2
+/opt/cuckoo3/venv/bin/vmcloak --debug init --win10x64 --hddsize 128 --cpus 2 --ramsize 4096 --network 192.168.30.0/24 --vm qemu --ip 192.168.30.2 --iso-mount /mnt/win10x64 win10base br0
+/opt/cuckoo3/venv/bin/vmcloak --debug install win10base dotnet:4.7.2 java:8u151 vcredist:2013 vcredist:2019 carootcert firefox tightvnc wallpaper uninstallsw disableservices
+/opt/cuckoo3/venv/bin/vmcloak --debug snapshot --count 1 win10base win10vm_192.168.30.2
 
 # Importing created VM into cuckoo3
-sudo -u cuckoo /opt/cuckoo3/venv/bin/cuckoo machine import qemu /home/cuckoo/.vmcloak/vms/qemu
-sudo -u cuckoo /opt/cuckoo3/venv/bin/cuckoo machine delete qemu example1
+/opt/cuckoo3/venv/bin/cuckoo machine import qemu /home/cuckoo/.vmcloak/vms/qemu
+/opt/cuckoo3/venv/bin/cuckoo machine delete qemu example1
 
 # Building static docs
-su - cuckoo
 cd /opt/cuckoo3
 source /opt/cuckoo3/venv/bin/activate
 >> cuckoomigrate database all
