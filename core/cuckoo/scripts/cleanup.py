@@ -8,6 +8,7 @@ from cuckoo.common.log import exit_error, print_info
 from cuckoo.common.startup import StartupError
 from cuckoo.common.storage import cuckoocwd, CWDError
 from cuckoo.common.analyses import States, delete_analysis_disk, delete_analysis_db
+from cuckoo.common.result import ResultDoesNotExistError
 
 
 def start_export(older_than_days, loglevel, without_confirm=False):
@@ -55,7 +56,7 @@ def start_export(older_than_days, loglevel, without_confirm=False):
             raise StartupError(e)
 
 
-def delete_analysis_by_id(analysis_id, log_level):
+def delete_analysis_by_id(analysis_id, loglevel):
     from cuckoo.common.log import set_logger_level
     from cuckoo.common.startup import init_global_logging, init_database
     from cuckoo.common.clients import APIClient
@@ -75,8 +76,9 @@ def delete_analysis_by_id(analysis_id, log_level):
     try:
         delete_analysis_db(analysis_id)
         delete_analysis_disk(analysis_id)
-    except (ResultDoesNotExistsError):
+    except (ResultDoesNotExistError):
         print_info(f"Analysis {analysis_id} not found")
+
 
 def delete_analyses(state, older_than_hours, loglevel, without_confirm=False):
     from cuckoo.common.log import set_logger_level

@@ -125,7 +125,8 @@ tail -f /tmp/cuckooweb-uwsgi.log /home/cuckoo/.cuckoocwd/log/* /opt/anubi/log/*'
 chmod +x /usr/local/bin/cuckoo_logs
 
 # Creating executable to delete specific analysis
-echo '#!/bin/bash sudo -u cuckoo /opt/cuckoo3/venv/bin/cuckoocleanup deleteid $1' > /usr/local/bin/cuckoo_delete_analysis
+echo '#!/bin/bash
+sudo -u cuckoo /opt/cuckoo3/venv/bin/cuckoocleanup deleteid $1' > /usr/local/bin/cuckoo_delete_analysis
 chmod +x /usr/local/bin/cuckoo_delete_analysis
 
 # Creating bridge first time
