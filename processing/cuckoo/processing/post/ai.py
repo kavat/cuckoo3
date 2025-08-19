@@ -41,16 +41,16 @@ class AIInfoGather(Processor):
 
             if 'static' in d and 'pe' in d['static']:
                 content = f"{content}\n### START GENERIC PARAGRAPH ###"
-                content = f"{content}\nHEADER=OS platform;SHA512 file signature"
                 content = f"{content}\nDESCRIPTION=Initial paragraph used to identify operative system used and SHA512 of file"
+                content = f"{content}\nHEADER=OS platform;SHA512 file signature"
                 content = f"{content}\nROW=windows;{d['target']['sha512']}"
                 content = f"{content}\n### END GENERIC PARAGRAPH ###"
 
             if 'static' in d and 'pe' in d['static'] and 'peid_signatures' in d['static']['pe']:
                 content = f"{content}\n### START PEID SIGNATURES PARAGRAPH ###"
                 count_signatures = 1
-                content = f"{content}\nHEADER="
                 content = f"{content}\nDESCRIPTION=PEID SIGNATURES are specific patterns or sequences of bytes within a file that indicate the presence of a particular packer or compiler"
+                content = f"{content}\nHEADER="
                 for signature in d['static']['pe']['peid_signatures']:
                     content = f"{content}\nROW=signature_{count_signatures};{signature}"
                     count_signatures = count_signatures + 1
@@ -100,15 +100,18 @@ class AIInfoGather(Processor):
 
         try:
             prompt_model = (
-                "Sei un analista esperto di cybersecurity e specializzato nella malware analysis.\n"
-                "Ti allegherò un testo contenente la seguente formattazione:\n"
-                "- avrai più paragrafi\n"
-                "- ogni paragrafo inizierà con ### START NOME PARAGRAPH ###\n"
-                "- ogni paragrafo terminerà con ### END NOME PARAGRAPH ###\n"
-                "- ogni paragrafo conterrà la riga DESCRIPTION dove ti spiegherà il significato del paragrafo\n"
-                "- ogni paragrafo conterrà la riga HEADER dove se vuota non dovrai interpretare quanto sotto come un CSV, altrimenti dovrai interpretarlo come un CSV suddiviso da ; e ogni campo valore corrisponderà al rispettivo campo di intestazione\n"
-                "- ogni paragrafo conterrà una o più righe ROW dove saranno riportati i valori da analizzare\n"
-                "Dell'elaborato prodotto, ritorna una doppia versione, la prima in lingua italiana e la seconda in lingua inglese. Separa l'output tra le due versioni usando come separatore l'occorrenza di caratteri ___|||___"
+                "You are a cybersecurity specialist expert in malware analysis.\n"
+                "You will receive in attachment a text formatted as following:\n"
+                "- Text contains multiple paragraphs\n"
+                "- Each paragraph begins with ### START XXXXXXXX PARAGRAPH ###\n"
+                "- Each paragraph ends with ### END XXXXXXXX PARAGRAPH ###\n"
+                "- Each paragraph contains a line starting with DESCRIPTION occurrence explaining the meaning of the paragraph\n"
+                "- Each paragraph contains a line starting with HEADER occurrence. If it is blank, you has not consider the lines below as a CSV content. Otherwise, you has to consider the lines below a CSV content separated by ; where each value field will correspond to the respective field in HEADER line.\n"
+                "- Each paragraph contains one or more line starting with ROW occurrence that represent the values to be analysed\n"
+                "At the end of the analysis, please returns a report in output following next requirements:\n"
+                "- output contains first italian version and after english one\n"
+                "- versions has to be separated by ___|||___ characters\n"
+                "- you have not to include the preamble where you summarize what I asked you to do, return only the analysis"
             )
             
             model = genai.GenerativeModel(self.gemini_api_model)
