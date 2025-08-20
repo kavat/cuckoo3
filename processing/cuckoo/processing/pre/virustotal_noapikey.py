@@ -16,9 +16,10 @@ class VirustotalNoAPIKey(Processor):
   @classmethod
   def enabled(cls):
     api_key = cfg("virustotal", "key", subpkg="processing")
-    if api_key != "":
+    if api_key == None or api_key == "":
+      return cfg("virustotal", "enabled", subpkg="processing")
+    else:
       return False
-    return cfg("virustotal", "enabled", subpkg="processing")
 
   def init(self):
     self.url = cfg("virustotal", "url_noapikey", subpkg="processing")

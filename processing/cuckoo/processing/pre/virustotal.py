@@ -15,6 +15,8 @@ class Virustotal(Processor):
     @classmethod
     def enabled(cls):
         api_key = cfg("virustotal", "key", subpkg="processing")
+        if api_key == None:
+            return False
         if api_key == "":
             return False
         return cfg("virustotal", "enabled", subpkg="processing")
