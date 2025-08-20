@@ -55,7 +55,7 @@ class AIInfoGather(Processor):
                     content = f"{content}\nHOWTOUSE=Use this paragraph to check online if headers identified can be used for malicious activities"
                     content = f"{content}\nHEADER=header type;header offset;header virtual address;header physical address;header size; header flags"
                     for header in d['static']['elf']['elf_analysis']['program_header']:
-                        content = f"{content}\nROW={header['Type']};{header['Offset']};header['Virtual Address']};{header['Physical Address']};header['File Size']};{header['Flags']}"
+                        content = f"{content}\nROW={header['Type']};{header['Offset']};{header['Virtual Address']};{header['Physical Address']};{header['File Size']};{header['Flags']}"
                     content = f"{content}\n### END ELF HEADERS PARAGRAPH ###"
 
                 if 'shared_libraries' in d['static']['elf']['elf_analysis']:
