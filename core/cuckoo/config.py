@@ -44,10 +44,10 @@ exclude_autoload = ["distributed.yaml"]
 typeloaders = {
     "cuckoo.yaml": {
         "suspicious_strings": config.List(
-            config.String, default_val=["powershell", "cmd.exe", "regsvr32", "rundll32", "mshta", "certutil", "base64", "wget", "curl", "vbs", "jscript", "wscript", "cscript", "wscript", "Invoke-", "DownloadString", "CreateObject", "WinExec", "ShellExecute", "net user", "net localgroup", "schtasks", "bypass", "obfuscate"]
+            config.String, default_val=["powershell", "cmd.exe", "regsvr32", "rundll32", "mshta", "certutil", "base64", "wget", "curl", "vbs", "jscript", "whoami", "vbox", "vmware", "cuckoo", "qemu", "sandboxie", "wscript", "cscript", "wscript", "Invoke-", "DownloadString", "CreateObject", "WinExec", "ShellExecute", "net user", "net localgroup", "schtasks", "bypass", "obfuscate"]
         ),
         "suspicious_functions": config.List(
-            config.String, default_val=['system', 'execve', 'popen', 'fork', 'vfork', 'clone', 'socket', 'connect', 'send', 'recv', 'bind', 'listen', 'dlopen', 'dlsym', 'mprotect', 'ptrace', 'open', 'read', 'write', 'unlink', 'chmod', 'fchmod', 'chown']
+            config.String, default_val=["CreateFileA/W", "ReadFile", "WriteFile", "DeleteFile", "CopyFile", "MoveFile", "FindFirstFile", "FindNextFile", "SetFileAttributes", "RegOpenKeyEx", "RegSetValueEx", "RegCreateKeyEx", "RegDeleteKey", "RegEnumKey", "WSAStartup", "socket", "connect", "send", "recv", "bind", "listen", "accept", "InternetOpenUrl", "URLDownloadToFile", "WinHttpOpen", "WinHttpSendRequest", "OpenProcess", "VirtualAllocEx", "WriteProcessMemory", "ReadProcessMemory", "CreateRemoteThread", "NtQueryInformationProcess", "LoadLibrary", "GetProcAddress", "CryptAcquireContext", "CryptEncrypt", "CryptDecrypt", "LogonUser", "LsaEnumerateLogonSessions", "MiniDumpWriteDump", "CreateService", "StartService", "ChangeServiceConfig", "SetWindowsHookEx", "RegisterHotKey", "ShellExecute", "SetWindowsHookEx", "GetAsyncKeyState", "GetForegroundWindow", "GetWindowText", "BlockInput", "open", "read", "write", "unlink", "rename", "mkdir", "rmdir", "chmod", "chown", "socket", "bind", "listen", "connect", "send", "recv", "sendto", "recvfrom", "getaddrinfo", "inet_addr", "inet_ntoa", "fork", "execve", "clone", "ptrace", "setuid", "setgid", "geteuid", "getegid", "setresuid", "setresgid", "crypt", "getspnam", "getpwnam", "crontab", "systemd", "ptrace", "getppid", "uname", "gettimeofday"]
         ),
         "machineries": config.List(Machinery, value=["qemu"]),
         "resultserver": {

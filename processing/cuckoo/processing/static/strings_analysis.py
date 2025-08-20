@@ -119,9 +119,10 @@ def StringsDetonation(filename, log_handler, errtracker_handler):
     "ipv6": "\\b(?:[A-Fa-f0-9]{1,4}:){7}[A-Fa-f0-9]{1,4}\\b|\\b(?:[A-Fa-f0-9]{1,4}:){1,7}:\\b|\\b:[A-Fa-f0-9]{1,4}(?::[A-Fa-f0-9]{1,4}){1,6}\\b",
     "mac": "\\b(?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2})\\b",
     "email": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
-    "packer": "^(upx|aspac|pec|fsg|themida|mew|armadillo|nsis|yoda|petite)"
+    "packer": "^(upx|aspac|pec|fsg|themida|mew|armadillo|nsis|yoda|petite)",
+    "tor": "\\.onion"
   }
-  patterns_ = ["url", "ipv4", "email", "packer"]
+  patterns_ = ["url", "ipv4", "ipv6", "email", "packer", "tor"]
   log_handler.info(f"[{filename}] started string analysis stage 1")
   for pattern_ in patterns_:
     rit['occurrences'][pattern_] = []
