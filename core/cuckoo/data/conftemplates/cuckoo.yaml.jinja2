@@ -80,6 +80,15 @@ processing:
     # Post workers are responsible for the processing of data collected during each task.
     post: {{ processing.worker_amount.post }}
 
+  whitelist:
+  {% for k, v in whitelist.items() %}
+    {{ k }}:
+      {% for vv in v %}
+      - {{ vv }}
+      {% endfor %}
+  {% endfor %}
+
+
 # The Cuckoo 'long term storage' host that reported analyses should be moved to when
 # starting 'cuckoocleanup remotestorage'. This host must have an import controller
 # instance and the Cuckoo API running.

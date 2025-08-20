@@ -18,7 +18,7 @@
       <h3>DNS Query</h3>
     </summary>
     {% for query in report.network.dns.query %}
-      {% if query.name not in ["www.bing.com", "dns.msftncsi.com", "ctldl.windowsupdate.com", "fs.microsoft.com", "go.microsoft.com"] %}
+      {% if query.name not in whitelist.fqdn %}
         {% set search_values = [query.name, query.type, query.srcip, query.srcport, query.dstip, query.dstport] %}
         <div class="box {% if loop.first %}is-grouped{% endif %} {% if loop.last %}has-shadow{% endif %} has-border" data-search-value="{{ search_values|join(' ') }}">
           <div class="columns is-gapless is-vcenter has-text-small">

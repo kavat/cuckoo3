@@ -12,6 +12,8 @@ from cuckoo.common.result import (
     InvalidResultDataError,
 )
 
+from cuckoo.common.config import cfg
+
 
 def index(request, analysis_id, task_id):
     try:
@@ -55,5 +57,6 @@ def index(request, analysis_id, task_id):
             "task": task.to_dict(),
             "report": postreport.to_dict(),
             "machine": machine.to_dict(),
+            "whitelist": cfg("cuckoo.yaml", "processing", "whitelist")
         },
     )

@@ -90,7 +90,14 @@ typeloaders = {
                 "identification": config.Int(default_val=1, min_value=1),
                 "pre": config.Int(default_val=1, min_value=1),
                 "post": config.Int(default_val=1, min_value=1),
-            }
+            },
+            "whitelist": config.Dict(
+                config.List(config.String),
+                allow_empty=True,
+                default_val={
+                    "fqdn": ["www.bing.com", "dns.msftncsi.com", "ctldl.windowsupdate.com", "fs.microsoft.com", "go.microsoft.com"]
+                }
+            )
         },
         "remote_storage": {
             "api_url": config.HTTPUrl(allow_empty=True),
