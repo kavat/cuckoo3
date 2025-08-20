@@ -20,7 +20,7 @@ suspicious_strings:
 suspicious_functions:
 {% for suspicious_function in suspicious_functions %}
   - {{ suspicious_function }}
-{% endfor %
+{% endfor %}
 
 # The resultserver is a Cuckoo component that running analysis machines upload their results to
 # it should be reachable from the analysis machine. A resultserver will be started on the configured
@@ -81,7 +81,7 @@ processing:
     post: {{ processing.worker_amount.post }}
 
   whitelist:
-  {% for k, v in whitelist.items() %}
+  {% for k, v in processing.whitelist.items() %}
     {{ k }}:
       {% for vv in v %}
       - {{ vv }}
