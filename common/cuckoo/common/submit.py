@@ -188,6 +188,8 @@ class SettingsVerifier:
                 error_list.append("Route type cannot be empty")
                 continue
 
+            # forced windows platform even for linux analysis, linux dynamic analysis has not been handled currently
+            platform.platform = "windows"
             has_platform, has_route, info = nodeinfos.find_support(platform, route)
             if info:
                 log.debug(

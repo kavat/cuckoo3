@@ -82,7 +82,8 @@ class AIInfoGather(Processor):
                     content = f"{content}\nHOWTOUSE=Use this paragraph to check if symbols can be used for malicious scope"
                     content = f"{content}\nHEADER=symbol name;symbol binding"
                     for elf_symbol in d['static']['elf']['elf_analysis']['dynamic_symbols']: 
-                        content = f"{content}\nROW={elf_symbol['Name']};{elf_symbol['Symbol Binding']}"
+                        if 'Name' in elf_symbol:
+                            content = f"{content}\nROW={elf_symbol['Name']};{elf_symbol['Symbol Binding']}"
                     content = f"{content}\n### END ELF DYNAMIC SYMBOLS PARAGRAPH ###"
 
                 if 'functions' in d['static']['elf']['elf_analysis']:

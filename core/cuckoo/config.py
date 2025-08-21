@@ -95,7 +95,7 @@ typeloaders = {
                 config.List(config.String),
                 allow_empty=True,
                 default_val={
-                    "fqdn": ["www.bing.com", "dns.msftncsi.com", "ctldl.windowsupdate.com", "fs.microsoft.com", "go.microsoft.com"]
+                    "fqdn": ["www.bing.com", "dns.msftncsi.com", "ctldl.windowsupdate.com", "fs.microsoft.com", "go.microsoft.com", "settings-win.data.microsoft.com", "sls.update.microsoft.com", "g.live.com"]
                 }
             )
         },
