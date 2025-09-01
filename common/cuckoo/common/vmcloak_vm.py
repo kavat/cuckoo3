@@ -32,7 +32,7 @@ def GetCurrentGuacamoleVM():
 
   return ritorno
 
-def InsertGuacamoleVM(ip):
+def InsertGuacamoleVM(ip, port):
   mydb = mysql.connector.connect(
     host=cfg("cuckoo.yaml", "guacamole", "db_ip"),
     user=cfg("cuckoo.yaml", "guacamole", "db_user"),
@@ -45,9 +45,12 @@ def InsertGuacamoleVM(ip):
   row_count = mycursor.fetchone()
 
   if row_count == None:
-    mycursor.execute("insert into guacamole_connection (connection_name, protocol) values ('{}', 'vnc')".format(ip))
+    if port == 22:
+      mycursor.execute("insert into guacamole_connection (connection_name, protocol) values ('{}', 'ssh')".format(ip))
+    if port == 5900:
+      mycursor.execute("insert into guacamole_connection (connection_name, protocol) values ('{}', 'vnc')".format(ip))
     mycursor.execute("insert into guacamole_connection_parameter values ((select connection_id from guacamole_connection where connection_name = '{}'), 'hostname', '{}')".format(ip, ip))
-    mycursor.execute("insert into guacamole_connection_parameter values ((select connection_id from guacamole_connection where connection_name = '{}'), 'port', '5900')".format(ip))
+    mycursor.execute("insert into guacamole_connection_parameter values ((select connection_id from guacamole_connection where connection_name = '{}'), 'port', {})".format(ip, port))
     mydb.commit()
   else:
     print("{} already present in Guacamole".format(ip))
@@ -80,18 +83,20 @@ def ClearGuacamoleVM(hosts_found):
     mydb.commit()
 
 def GetLiveVM():
-  port_searched = 5900
+  ports_searched = [22, 5900]
+  ports_str = ",".join(map(str, ports_searched))
   hosts_found = []
   nm = nmap.PortScanner()
-  nm.scan('192.168.30.0/24', "{}".format(port_searched))
+  nm.scan('192.168.30.0/24', "{}".format(ports_str))
   for host in nm.all_hosts():
     if host != "192.168.30.1":
       print("Host {} found".format(host))
       print("Host status {}".format(nm[host].state()))
       for port in nm[host]['tcp'].keys():
-        if port == port_searched:
+        print(nm[host]['tcp'])
+        if nm[host]['tcp'][port]['state'] == 'open' and port in ports_searched:
           print("TCP port {} found".format(port))
-          InsertGuacamoleVM(host)
+          InsertGuacamoleVM(host, port)
           hosts_found.append("'{}'".format(host))
   ClearGuacamoleVM(hosts_found) 
   return GetCurrentGuacamoleVM()

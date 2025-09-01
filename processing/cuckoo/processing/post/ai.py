@@ -178,10 +178,29 @@ class AIInfoGather(Processor):
             
             model = genai.GenerativeModel(self.gemini_api_model)
             response = model.generate_content(prompt_model + "\n\n" + content)
+
+            print_response = 0
+            it_version = "Non disponibile"
+            en_version = "Not available"
+
+            try:
+                it_version = response.text.split('___|||___')[0]
+            except Exception as e1:
+                self.ctx.log.warning("Error during AI response split italian version:", error=e1)
+                print_response = 1
+            try:
+                en_version = response.text.split('___|||___')[1]
+            except Exception as e2:
+                self.ctx.log.warning("Error during AI response split english version:", error=e2)
+                print_response = 1
+
+            if print_response == 1:
+                self.ctx.log.warning("Response from Gemini AI: {}".format(response.text))
+
             return {
                 "gemini_report": {
-                    "it": response.text.split('___|||___')[0],
-                    "en": response.text.split('___|||___')[1]
+                    "it": it_version,
+                    "en": en_version
                 }
             }
         except AIError as e:

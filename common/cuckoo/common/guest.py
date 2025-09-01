@@ -8,7 +8,7 @@ import socket
 import time
 from datetime import datetime
 from distutils.version import LooseVersion
-from pathlib import Path, PureWindowsPath
+from pathlib import Path, PureWindowsPath, PurePosixPath
 from tempfile import mkdtemp
 from zipfile import ZipFile, ZipInfo
 
@@ -344,7 +344,10 @@ class StagerHelper:
 
     @classmethod
     def find_stager_dir(cls, platform, archirecture, version=""):
-        base = Paths.monitor(platform, archirecture, cls.MONITOR_NAME)
+        if platform == "windows":
+            base = Paths.monitor(platform, archirecture, cls.MONITOR_NAME_WINDOWS)
+        if platform == "linux":
+            base = Paths.monitor(platform, archirecture, cls.MONITOR_NAME_LINUX)
         # Find 'default' version string from default_stager file.
         if not version:
             version = get_default_version(base.joinpath(cls.DEFAULT_STAGER))
@@ -353,7 +356,10 @@ class StagerHelper:
         if not stager_path.is_dir():
             raise StagerError(f"Stager {stager_path} does not exist.")
 
-        stager_binary = stager_path.joinpath(cls.STAGER_BINARY)
+        if platform == "windows":
+            stager_binary = stager_path.joinpath(cls.STAGER_BINARY_WINDOWS)
+        if platform == "linux":
+            stager_binary = stager_path.joinpath(cls.STAGER_BINARY_LINUX)
         if not stager_binary.is_file():
             raise StagerError(f"Stager binary {stager_binary} does not exist.")
 
@@ -361,7 +367,10 @@ class StagerHelper:
 
     @classmethod
     def find_monitor_dir(cls, platform, archirecture, version=""):
-        base = Paths.monitor(platform, archirecture, cls.MONITOR_NAME)
+        if platform == "windows":
+            base = Paths.monitor(platform, archirecture, cls.MONITOR_NAME_WINDOWS)
+        if platform == "linux":
+            base = Paths.monitor(platform, archirecture, cls.MONITOR_NAME_LINUX)
         # Find 'default' version string from default_monitor file.
         if not version:
             version = get_default_version(base.joinpath(cls.DEFAULT_MONITOR))
@@ -370,7 +379,10 @@ class StagerHelper:
         if not monitor_path.is_dir():
             raise StagerError(f"Monitor {monitor_path} does not exist.")
 
-        monitor_binary = monitor_path.joinpath(cls.MONITOR_BINARY)
+        if platform == "windows":
+            monitor_binary = monitor_path.joinpath(cls.MONITOR_BINARY_WINDOWS)
+        if platform == "linux":
+            monitor_binary = monitor_path.joinpath(cls.MONITOR_BINARY_LINUX)
         if not monitor_binary.is_file():
             raise StagerError(f"Monitor binary {monitor_binary} does not exist.")
 
@@ -402,12 +414,16 @@ class StagerHelper:
 
 class TmStage(StagerHelper):
     name = "tmstage"
-    platforms = ["windows"]
+    platforms = ["windows","linux"]
 
-    MONITOR_NAME = "threemon"
+    MONITOR_NAME_WINDOWS = "threemon"
+    MONITOR_NAME_LINUX = "mon"
 
-    STAGER_BINARY = "tmstage.exe"
-    MONITOR_BINARY = "threemon.sys"
+    STAGER_BINARY_WINDOWS = "tmstage.exe"
+    STAGER_BINARY_LINUX = "mon"
+
+    MONITOR_BINARY_WINDOWS = "threemon.sys"
+    MONITOR_BINARY_LINUX = "mon"
 
     def _build_settings(self, debug, resultserver, options, target, is_archive):
         return json.dumps(
@@ -443,13 +459,16 @@ class TmStage(StagerHelper):
             is_archive=is_archive,
         )
 
+        platform = self.analysis.target.platforms[0]['platform']
         stager_filepath = self.find_stager_dir(
-            platform="windows",
+            #platform="windows",
+            platform=platform,
             archirecture="amd64",
             version=options.get("stager.version"),
         )
         monitor_filepath = self.find_monitor_dir(
-            platform="windows",
+            #platform="windows",
+            platform=platform,
             archirecture="amd64",
             version=options.get("monitor.version"),
         )
@@ -461,7 +480,8 @@ class TmStage(StagerHelper):
             pay.add_dir(monitor_filepath)
             # Stager path contains stager binary and other things such as
             # auxiliary modules.
-            pay.add_dir(stager_filepath)
+            if stager_filepath != None:
+                pay.add_dir(stager_filepath)
 
             if self.analysis.category == "file":
                 if is_archive:
@@ -503,18 +523,26 @@ class TmStage(StagerHelper):
             self.agent.extract_zip(self.payload.fp, tmpdir)
         except AgentError as e:
             raise StagerError(f"Failed to extract payload: {e}")
+        self.log.warning(f"Extracted {self.payload.fp} in {tmpdir}")
 
-        stager_path = PureWindowsPath(tmpdir, self.STAGER_BINARY)
-        try:
-            # A timeout is important when delivering the payload in case the
-            # agent stops responding.
-            stdout, stderr = self.agent.execute(
-                stager_path,
-                cwd=tmpdir,
-                timeout=60,  # TODO use task timeout?
-            )
-        except AgentError as e:
-            raise StagerError(f"Failed to execute stager: {e}")
+        stderr = ""
+        platform = self.analysis.target.platforms[0]['platform']
+        if platform == "windows":
+            stager_path = PureWindowsPath(tmpdir, self.STAGER_BINARY_WINDOWS)
+        if platform == "linux":
+            stager_path = PurePosixPath(tmpdir, self.STAGER_BINARY_LINUX)
+        # DA CAMBIARE
+        if platform == "windows":
+            try:
+                # A timeout is important when delivering the payload in case the
+                # agent stops responding.
+                stdout, stderr = self.agent.execute(
+                    stager_path,
+                    cwd=tmpdir,
+                    timeout=60,  # TODO use task timeout?
+                )
+            except AgentError as e:
+                raise StagerError(f"Failed to execute stager: {e}")
 
         self.dump_payload_log(stderr)
 
@@ -526,11 +554,11 @@ class TmStage(StagerHelper):
                             f"Payload execution failed: {line}. {stderr}"
                         )
 
-        # Delete the stager executable.
-        try:
-            self.agent.delete_file(stager_path)
-        except AgentError as e:
-            self.log.warning("Failed to delete stager executable", error=e)
+        # DA RIMETTERE Delete the stager executable.
+        #try:
+        #    self.agent.delete_file(stager_path)
+        #except AgentError as e:
+        #    self.log.warning("Failed to delete stager executable", error=e)
 
         # Kill the agent. We no longer are using the analyzer, making it
         # useless to leave it running. It only increases the chance of it
@@ -543,7 +571,7 @@ class TmStage(StagerHelper):
             self.log.warning("Failed to kill agent.", error=e)
 
 
-_stagers = {"threemon": TmStage}
+_stagers = {"threemon": TmStage, "mon": TmStage}
 
 DEFAULT_MONITOR_FILE = "default"
 
@@ -552,6 +580,8 @@ def find_stager(platform, arch="amd64"):
     arch = arch.lower()
     monitor_path = Paths.monitor(platform, arch)
     if not monitor_path.is_dir():
+        # forcing none return to proceed with linux executions
+        #return None
         raise StagerError(
             f"No monitor exists for platform '{platform}' with architecture: '{arch}'"
         )
@@ -562,6 +592,8 @@ def find_stager(platform, arch="amd64"):
 
     if not monitor_path.joinpath(monitor_name).is_dir():
         raise StagerError(f"No monitor path for default monitor {monitor_name} exists.")
+
+    print(f"Trovato monitor_name {monitor_name}") 
 
     stager = _stagers.get(monitor_name)
     if not stager:

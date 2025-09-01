@@ -90,7 +90,7 @@ def _create_task(nodes_tracker, analysis, task_number, platform_obj):
     route = platform_obj.settings.route or analysis.settings.route
 
     # forced windows platform even for linux analysis, linux dynamic analysis has not been handled currently
-    platform_obj.platform = "windows"
+    #platform_obj.platform = "windows"
     has_platform, has_route, _ = nodes_tracker.nodeinfos.find_support(
         platform_obj, route
     )

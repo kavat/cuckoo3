@@ -245,26 +245,27 @@ def _make_command(qemu_machine, emulator_path, disposable_disk_path, emulator_ve
     # The memory snapshot might be compressed. See if the compressed was
     # recognized and we can decompress it. Create a command that results
     # in the decompressed memory being fed to the qemu -incoming argument.
-    if qemu_machine.snapshot_compressed:
-        compress_type = qemu_machine.snapshot_compression
-        binary = _DECOMPRESS_BINARIES.get(compress_type)
-        decompress_args = _DECOMPRESS_COMMANDS.get(compress_type)
-        if not binary or not decompress_args:
-            raise errors.MachineryError(
-                f"Cannot build qemu start command. Unknown snapshot "
-                f"compression type: {compress_type}. No decompression "
-                f"binary or command found."
-            )
+    if 1 == 2:
+        if qemu_machine.snapshot_compressed:
+            compress_type = qemu_machine.snapshot_compression
+            binary = _DECOMPRESS_BINARIES.get(compress_type)
+            decompress_args = _DECOMPRESS_COMMANDS.get(compress_type)
+            if not binary or not decompress_args:
+                raise errors.MachineryError(
+                    f"Cannot build qemu start command. Unknown snapshot "
+                    f"compression type: {compress_type}. No decompression "
+                    f"binary or command found."
+                )
 
-        decompress_args = decompress_args.replace("%BINARY_PATH%", binary).replace(
-            "%SNAPSHOT_PATH%", qemu_machine.snapshot_path
-        )
-        # Feed the command to decompress the snapshot path to the incoming
-        # argument so qemu can decompress it.
-        command.extend(["-incoming", f"exec:{decompress_args}"])
-    else:
-        # Tell qemu how to read uncompressed snapshot path.
-        command.extend(["-incoming", f"exec:/bin/cat < {qemu_machine.snapshot_path}"])
+            decompress_args = decompress_args.replace("%BINARY_PATH%", binary).replace(
+                "%SNAPSHOT_PATH%", qemu_machine.snapshot_path
+            )
+            # Feed the command to decompress the snapshot path to the incoming
+            # argument so qemu can decompress it.
+            command.extend(["-incoming", f"exec:{decompress_args}"])
+        else:
+            # Tell qemu how to read uncompressed snapshot path.
+            command.extend(["-incoming", f"exec:/bin/cat < {qemu_machine.snapshot_path}"])
 
     return command
 
@@ -565,11 +566,36 @@ class QEMU(Machinery):
                 check=True,
             )
         except subprocess.CalledProcessError as e:
-            raise errors.MachineryError(
-                f"Failed to create disposable disk with qemu-img. "
-                f"Command: {' '.join(command)}. Exit code: {e.returncode}. "
-                f"Stderr: {e.stderr}"
+            log.warning(
+                f"Failed to create disposable disk with qemu-img => Command: {' '.join(command)}. Exit code: {e.returncode}, Stderr: {e.stderr}"
             )
+            log.warning(
+                f"Proceeding with copy {vm.qcow2_path} in {str(path)}"
+            )
+            command = [
+                "/bin/cp",
+                vm.qcow2_path,
+                str(path)
+            ]
+            try:
+                subprocess.run(
+                    command,
+                    shell=False,
+                    stderr=subprocess.PIPE,
+                    stdout=subprocess.DEVNULL,
+                    check=True,
+                )
+            except subprocess.CalledProcessError as ee:
+                raise errors.MachineryError(
+                    f"Failed to create disposable disk making qemu copy and cp"
+                    f"Command: {' '.join(command)}. Exit code: {ee.returncode}. "
+                    f"Stderr: {ee.stderr}"
+                )
+            #raise errors.MachineryError(
+            #    f"Failed to create disposable disk with qemu-img. "
+            #    f"Command: {' '.join(command)}. Exit code: {e.returncode}. "
+            #    f"Stderr: {e.stderr}"
+            #)
 
         return path
 
