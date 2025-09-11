@@ -23,7 +23,8 @@ class PDFFile:
     def uncompress_flatdecode(self):
         ritorno = ""
         pdf = open(self._filepath, "rb").read()
-        stream = re.compile(rb'.*?FlateDecode.*?stream(.*?)endstream', re.S)
+        #stream = re.compile(rb'.*?FlateDecode.*?stream(.*?)endstream', re.S)
+        stream = re.compile(rb'(?<=FlateDecode).*?stream\s*(.*?)\s*endstream', re.S)
 
         for s in stream.findall(pdf):
             s = s.strip(b'\r\n')

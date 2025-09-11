@@ -18,6 +18,7 @@ import pypandoc
 
 
 def index(request, analysis_id):
+    skip_post = False
     try:
         result = retriever.get_analysis(
             analysis_id, include=[Results.ANALYSIS, Results.TASK, Results.PRE, Results.POST]
@@ -25,6 +26,8 @@ def index(request, analysis_id):
         analysis = result.analysis
         with open(TaskPaths.report(f"{analysis_id}_1")) as f:
             task_report = json.load(f)
+    except FileNotFoundError:
+        skip_post = True
     except ResultDoesNotExistError:
         return HttpResponseNotFound()
     except InvalidResultDataError as e:
@@ -41,11 +44,21 @@ def index(request, analysis_id):
 
     try:
         pre = result.pre
-        post = task_report
+        #post = task_report
     except ResultDoesNotExistError:
         return HttpResponseNotFound()
     except InvalidResultDataError as e:
         return HttpResponseServerError(str(e))
+
+    if skip_post != True:
+        try:
+            post = task_report
+        except ResultDoesNotExistError:
+            return HttpResponseNotFound()
+        except InvalidResultDataError as e:
+            return HttpResponseServerError(str(e))
+    else:
+        post = {}
 
     allowed_subnets = cfg(
         "web.yaml", "web", "downloads", "allowed_subnets", subpkg="web"
@@ -75,7 +88,7 @@ def index(request, analysis_id):
           suspected = func_name.split('@')[0] in cfg("cuckoo.yaml", "suspicious_functions")
           pre_postanalysis['static']['elf']['elf_analysis'][tag][k]['Suspected'] = str(suspected)
 
-    if 'ai' in post and 'gemini_report' in post['ai']:
+    if skip_post != True and 'ai' in post and 'gemini_report' in post['ai']:
       gemini_report_it = pypandoc.convert_text(post['ai']['gemini_report']['it'], 'html', format='md').replace(" * ","<br>")
       gemini_report_en = pypandoc.convert_text(post['ai']['gemini_report']['en'], 'html', format='md').replace(" * ","<br>")
       post['ai']['gemini_report']['it'] = gemini_report_it

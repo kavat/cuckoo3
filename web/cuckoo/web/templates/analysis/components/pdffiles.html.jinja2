@@ -1,0 +1,17 @@
+{# PDF General Content #}
+<div>
+  <div>
+    {% call ui_box(title="PDF General Content") %}
+      <textarea rows="20" cols="140" readonly style="border:none;">
+      {% for line in pre.static.pdf.pdf_general_content %}
+        {{ line }}
+      {% endfor %}
+      </textarea>
+    {% endcall %}
+  </div>
+  <div>
+    {% call ui_box(title="PDF Decoded Content") %}
+      <div>{{ pre.static.pdf.pdf_decoded_content }}</div>
+    {% endcall %}
+  </div>
+</div>
