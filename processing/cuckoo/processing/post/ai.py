@@ -10,6 +10,131 @@ from cuckoo.common.storage import AnalysisPaths
 from ..abtracts import Processor
 from ..errors import DisablePluginError
 
+import os
+import re
+import sys
+from typing import Dict, Tuple, List
+
+try:
+    import yara
+    YARA_AVAILABLE = True
+except Exception:
+    yara = None
+    YARA_AVAILABLE = False
+
+VALID_EXTS = {".yar", ".yara"}
+
+def list_yara_files(directory: str) -> List[str]:
+    files = []
+    for entry in os.listdir(directory):
+        p = os.path.join(directory, entry)
+        if os.path.isfile(p) and os.path.splitext(entry)[1].lower() in VALID_EXTS:
+            files.append(p)
+    return sorted(files)
+
+def extract_rules_from_text(text: str) -> Dict[str, str]:
+    """
+    Estrae tutte le regole dal testo (nome -> testo intero della regola, includendo 'rule ... { ... }').
+    Usa ricerca della parola 'rule' e conteggio parentesi graffe per catturare blocchi nidificati.
+    """
+    rules = {}
+    # trova le occorrenze di 'rule <name>'
+    for m in re.finditer(r'\brule\s+([A-Za-z0-9_]+)\b', text, flags=re.IGNORECASE):
+        name = m.group(1)
+        # trova la prima '{' dopo la match
+        start_idx = m.end()
+        brace_pos = text.find('{', start_idx)
+        if brace_pos == -1:
+            continue
+        idx = brace_pos
+        depth = 0
+        end_idx = None
+        # scorri avanti per bilanciare le graffe
+        while idx < len(text):
+            ch = text[idx]
+            if ch == '{':
+                depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0:
+                    end_idx = idx
+                    break
+            idx += 1
+        if end_idx:
+            rule_text = text[m.start(): end_idx+1]
+            # Se il nome è già presente, aggiungiamo un suffisso numerico per evitare perdita
+            if name in rules:
+                # crea nome con suffisso
+                i = 1
+                new_name = f"{name}__dup{i}"
+                while new_name in rules:
+                    i += 1
+                    new_name = f"{name}__dup{i}"
+                rules[new_name] = rule_text
+            else:
+                rules[name] = rule_text
+    return rules
+
+class YaraRuleStore:
+    def __init__(self, directory: str):
+        self.directory = directory
+        self.files = list_yara_files(directory)
+        self.rules_map: Dict[str, Tuple[str, str]] = {}
+        # rules_map[name] = (file_path, rule_text)
+        self.compiled_rules = None
+        self._load()
+
+    def _load(self):
+        # leggi file e estrai regole
+        per_file_rules = {}  # file -> dict(name->text)
+        for f in self.files:
+            try:
+                with open(f, 'r', encoding='utf-8', errors='replace') as fh:
+                    txt = fh.read()
+                extracted = extract_rules_from_text(txt)
+                per_file_rules[f] = extracted
+                for name, text in extracted.items():
+                    self.rules_map[name] = (f, text)
+            except Exception as e:
+                print(f"[!] Errore leggendo {f}: {e}", file=sys.stderr)
+
+        # prova a compilare tutte le regole (opzionale ma utile per validazione)
+        if YARA_AVAILABLE and per_file_rules:
+            # prepare file mapping per yara.compile: namespace->path
+            file_mapping = {}
+            for idx, f in enumerate(self.files):
+                ns = f"ns{idx}"
+                file_mapping[ns] = f
+            try:
+                # nota: yara.compile con filepaths mappa namespace->file
+                self.compiled_rules = yara.compile(filepaths=file_mapping)
+            except yara.SyntaxError as e:
+                print(f"[!] Errore di sintassi durante la compilazione delle regole YARA: {e}", file=sys.stderr)
+                # non interrompere: le regole testate manualmente rimangono nella mappa
+            except Exception as e:
+                print(f"[!] Errore inatteso compilando le regole: {e}", file=sys.stderr)
+        elif not YARA_AVAILABLE:
+            print("[i] Modulo yara-python non installato: salto compilazione (solo estrazione testo).", file=sys.stderr)
+
+    def get_rule_body(self, rule_name: str) -> str:
+        """
+        Ritorna il testo della regola (intero blocco 'rule ... { ... }') per rule_name.
+        Lancia KeyError se la regola non viene trovata.
+        """
+        if rule_name in self.rules_map:
+            _, text = self.rules_map[rule_name]
+            return text
+        # tentativo di case-insensitive match
+        lower = {k.lower(): k for k in self.rules_map.keys()}
+        if rule_name.lower() in lower:
+            real = lower[rule_name.lower()]
+            _, text = self.rules_map[real]
+            return text
+        raise KeyError(f"Regola '{rule_name}' non trovata fra le regole caricate.")
+
+    def list_rules(self) -> List[str]:
+        return sorted(self.rules_map.keys())
+
 class AIError(Exception):
     pass
 
@@ -32,7 +157,35 @@ class AIInfoGather(Processor):
         except AIError as e:
             raise DisablePluginError(f"Failed to configura AI plugin. Error: {e}")
 
-    def _get_content_for_report(self):
+    def _get_content_for_report_yara(self, yara_rules_path):
+
+        content = ""
+
+        with open(AnalysisPaths._path(self.ctx.analysis.id, "pre.json")) as f:
+            d = json.load(f)
+
+            if 'anubi' in d:
+
+                store = YaraRuleStore(yara_rules_path)
+
+                if d['anubi']['yara_scan']:
+
+                    first = 0
+
+                    for rule in d['anubi']['yara_scan']:
+                        try:
+                            body = store.get_rule_body(rule['rule'])
+                            if first == 0:
+                                first = 1
+                                content = f"{d['target']['filename']}###{d['target']['sha512']}\n"
+                            content = f"{content}--- RULE BODY START ---\n{body}\n--- RULE BODY END ---"
+                        except KeyError as e:
+                            self.ctx.log.warning(f"Error on _get_content_for_report_yara for rule {rule['rule']}:", error=e)
+
+        return content
+
+
+    def _get_content_for_report_general(self):
 
         content = ""
 
@@ -153,10 +306,10 @@ class AIInfoGather(Processor):
         return content
 
     def start(self):
-        content = self._get_content_for_report()
+        content = self._get_content_for_report_general()
 
         if content == "":
-            self.ctx.log.warning("Failed to retrieve content for AI report")
+            self.ctx.log.warning("Failed to retrieve content for AI report general")
             return {} 
 
         try:
@@ -197,12 +350,62 @@ class AIInfoGather(Processor):
             if print_response == 1:
                 self.ctx.log.warning("Response from Gemini AI: {}".format(response.text))
 
-            return {
-                "gemini_report": {
-                    "it": it_version,
-                    "en": en_version
-                }
-            }
         except AIError as e:
             self.ctx.log.warning("Failed to retrieve AI report", error=e)
+            #return {}
+
+        content = self._get_content_for_report_yara("/opt/anubi/conf/anubi-signatures/yara/")
+
+        if content == "":
+            self.ctx.log.warning("Failed to retrieve content for AI report yara")
             return {}
+
+        try:
+            prompt_model = (
+                "You are a cybersecurity specialist expert in malware analysis.\n"
+                "You will receive in attachment a text formatted as following:\n"
+                "- Text contains multiple yara rules triggered as paragraph\n"
+                "- First line contains software name and its sha256 hash separated by three #\n"
+                "- Every other paragraph begins with ### RULE BODY START ###\n"
+                "- Every other paragraph ends with ### RULE BODY END ###\n"
+                "- Every other paragraph contains between delimitators lines explained above the body of the rule\n"
+                "Ensure avoiding false positives performing more controls and checks. At the end of the analysis, please returns a report in output following next requirements:\n"
+                "- output contains first italian version and after english one\n"
+                "- versions has to be separated by ___|||___ characters\n"
+                "- summarize in a table with the focal points\n"
+                "- you have not to include the preamble where you summarize what I asked you to do, return only the analysis"
+            )
+
+            model = genai.GenerativeModel(self.gemini_api_model)
+            response = model.generate_content(prompt_model + "\n\n" + content)
+
+            print_response = 0
+            it_y_version = "Non disponibile"
+            en_y_version = "Not available"
+
+            try:
+                it_y_version = response.text.split('___|||___')[0]
+            except Exception as e1:
+                self.ctx.log.warning("Error during AI response split italian version:", error=e1)
+                print_response = 1
+            try:
+                en_y_version = response.text.split('___|||___')[1]
+            except Exception as e2:
+                self.ctx.log.warning("Error during AI response split english version:", error=e2)
+                print_response = 1
+
+            if print_response == 1:
+                self.ctx.log.warning("Response from Gemini AI: {}".format(response.text))
+
+        except AIError as e:
+            self.ctx.log.warning("Failed to retrieve AI report", error=e)
+            #return {}
+
+        return {
+            "gemini_report": {
+                "it": it_version,
+                "en": en_version,
+                "it_y": it_y_version,
+                "en_y": en_y_version
+            }
+        }
