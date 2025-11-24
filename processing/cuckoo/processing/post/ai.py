@@ -192,7 +192,6 @@ class AIInfoGather(Processor):
         with open(AnalysisPaths._path(self.ctx.analysis.id, "pre.json")) as f:
             d = json.load(f)
 
-
             if 'static' in d and 'elf' in d['static'] and 'elf_analysis' in d['static']['elf']:
 
                 content = f"{content}\n### START ELF GENERIC PARAGRAPH ###"
@@ -310,96 +309,93 @@ class AIInfoGather(Processor):
 
         if content == "":
             self.ctx.log.warning("Failed to retrieve content for AI report general")
-            return {} 
-
-        try:
-            prompt_model = (
-                "You are a cybersecurity specialist expert in malware analysis.\n"
-                "You will receive in attachment a text formatted as following:\n"
-                "- Text contains multiple paragraphs\n"
-                "- Each paragraph begins with ### START XXXXXXXX PARAGRAPH ###\n"
-                "- Each paragraph ends with ### END XXXXXXXX PARAGRAPH ###\n"
-                "- Each paragraph contains a line starting with HOWTOUSE occurrence and aims to teach you which are the controls that I ask you to perform\n"
-                "- Each paragraph contains a line starting with DESCRIPTION occurrence explaining the meaning of the paragraph\n"
-                "- Each paragraph contains a line starting with HEADER occurrence. If it is blank, you has not consider the lines below as a CSV content. Otherwise, you has to consider the lines below a CSV content separated by ; where each value field will correspond to the respective field in HEADER line.\n"
-                "- Each paragraph contains one or more line starting with ROW occurrence that represent the values to be analysed\n"
-                "Perform the analysis as explained before adding the scope of the software analysed if you are able to retrieve its name from SHA512 hash, ensure avoiding false positives performing more controls and checks. At the end of the analysis, please returns a report in output following next requirements:\n"
-                "- output contains first italian version and after english one\n"
-                "- versions has to be separated by ___|||___ characters\n"
-                "- you have not to include the preamble where you summarize what I asked you to do, return only the analysis"
-            )
-            
-            model = genai.GenerativeModel(self.gemini_api_model)
-            response = model.generate_content(prompt_model + "\n\n" + content)
-
-            print_response = 0
-            it_version = "Non disponibile"
-            en_version = "Not available"
-
+        else:
             try:
-                it_version = response.text.split('___|||___')[0]
-            except Exception as e1:
-                self.ctx.log.warning("Error during AI response split italian version:", error=e1)
-                print_response = 1
-            try:
-                en_version = response.text.split('___|||___')[1]
-            except Exception as e2:
-                self.ctx.log.warning("Error during AI response split english version:", error=e2)
-                print_response = 1
+                prompt_model = (
+                    "You are a cybersecurity specialist expert in malware analysis.\n"
+                    "You will receive in attachment a text formatted as following:\n"
+                    "- Text contains multiple paragraphs\n"
+                    "- Each paragraph begins with ### START XXXXXXXX PARAGRAPH ###\n"
+                    "- Each paragraph ends with ### END XXXXXXXX PARAGRAPH ###\n"
+                    "- Each paragraph contains a line starting with HOWTOUSE occurrence and aims to teach you which are the controls that I ask you to perform\n"
+                    "- Each paragraph contains a line starting with DESCRIPTION occurrence explaining the meaning of the paragraph\n"
+                    "- Each paragraph contains a line starting with HEADER occurrence. If it is blank, you has not consider the lines below as a CSV content. Otherwise, you has to consider the lines below a CSV content separated by ; where each value field will correspond to the respective field in HEADER line.\n"
+                    "- Each paragraph contains one or more line starting with ROW occurrence that represent the values to be analysed\n"
+                    "Perform the analysis as explained before adding the scope of the software analysed if you are able to retrieve its name from SHA512 hash, ensure avoiding false positives performing more controls and checks. At the end of the analysis, please returns a report in output following next requirements:\n"
+                    "- output contains first italian version and after english one\n"
+                    "- versions has to be separated by ___|||___ characters\n"
+                    "- you have not to include the preamble where you summarize what I asked you to do, return only the analysis"
+                )
+              
+                model = genai.GenerativeModel(self.gemini_api_model)
+                response = model.generate_content(prompt_model + "\n\n" + content)
 
-            if print_response == 1:
-                self.ctx.log.warning("Response from Gemini AI: {}".format(response.text))
+                print_response = 0
+                it_version = "Non disponibile"
+                en_version = "Not available"
 
-        except AIError as e:
-            self.ctx.log.warning("Failed to retrieve AI report", error=e)
-            #return {}
+                try:
+                    it_version = response.text.split('___|||___')[0]
+                except Exception as e1:
+                    self.ctx.log.warning("Error during AI general response split italian version:", error=e1)
+                    print_response = 1
+                try:
+                    en_version = response.text.split('___|||___')[1]
+                except Exception as e2:
+                    self.ctx.log.warning("Error during AI general response split english version:", error=e2)
+                    print_response = 1
+
+                if print_response == 1:
+                    self.ctx.log.warning("Response from Gemini AI general: {}".format(response.text))
+
+            except AIError as e:
+                self.ctx.log.warning("Failed to retrieve AI report general", error=e)
 
         content = self._get_content_for_report_yara("/opt/anubi/conf/anubi-signatures/yara/")
 
         if content == "":
             self.ctx.log.warning("Failed to retrieve content for AI report yara")
-            return {}
-
-        try:
-            prompt_model = (
-                "You are a cybersecurity specialist expert in malware analysis.\n"
-                "You will receive in attachment a text formatted as following:\n"
-                "- Text contains multiple yara rules triggered as paragraph\n"
-                "- First line contains software name and its sha256 hash separated by three #\n"
-                "- Every other paragraph begins with ### RULE BODY START ###\n"
-                "- Every other paragraph ends with ### RULE BODY END ###\n"
-                "- Every other paragraph contains between delimitators lines explained above the body of the rule\n"
-                "Ensure avoiding false positives performing more controls and checks. At the end of the analysis, please returns a report in output following next requirements:\n"
-                "- output contains first italian version and after english one\n"
-                "- versions has to be separated by ___|||___ characters\n"
-                "- summarize in a table with the focal points\n"
-                "- you have not to include the preamble where you summarize what I asked you to do, return only the analysis"
-            )
-
-            model = genai.GenerativeModel(self.gemini_api_model)
-            response = model.generate_content(prompt_model + "\n\n" + content)
-
-            print_response = 0
-            it_y_version = "Non disponibile"
-            en_y_version = "Not available"
+        else:
 
             try:
-                it_y_version = response.text.split('___|||___')[0]
-            except Exception as e1:
-                self.ctx.log.warning("Error during AI response split italian version:", error=e1)
-                print_response = 1
-            try:
-                en_y_version = response.text.split('___|||___')[1]
-            except Exception as e2:
-                self.ctx.log.warning("Error during AI response split english version:", error=e2)
-                print_response = 1
+                prompt_model = (
+                    "You are a cybersecurity specialist expert in malware analysis.\n"
+                    "You will receive in attachment a text formatted as following:\n"
+                    "- Text contains multiple yara rules triggered as paragraph\n"
+                    "- First line contains software name and its sha256 hash separated by three #\n"
+                    "- Every other paragraph begins with ### RULE BODY START ###\n"
+                    "- Every other paragraph ends with ### RULE BODY END ###\n"
+                    "- Every other paragraph contains between delimitators lines explained above the body of the rule\n"
+                    "Ensure avoiding false positives performing more controls and checks. At the end of the analysis, please returns a report in output following next requirements:\n"
+                    "- output contains first italian version and after english one\n"
+                    "- versions has to be separated by ___|||___ characters\n"
+                    "- summarize in a table with the focal points\n"
+                    "- you have not to include the preamble where you summarize what I asked you to do, return only the analysis"
+                )
 
-            if print_response == 1:
-                self.ctx.log.warning("Response from Gemini AI: {}".format(response.text))
+                model = genai.GenerativeModel(self.gemini_api_model)
+                response = model.generate_content(prompt_model + "\n\n" + content)
 
-        except AIError as e:
-            self.ctx.log.warning("Failed to retrieve AI report", error=e)
-            #return {}
+                print_response = 0
+                it_y_version = "Non disponibile"
+                en_y_version = "Not available"
+
+                try:
+                    it_y_version = response.text.split('___|||___')[0]
+                except Exception as e1:
+                    self.ctx.log.warning("Error during AI yara response split italian version:", error=e1)
+                    print_response = 1
+                try:
+                    en_y_version = response.text.split('___|||___')[1]
+                except Exception as e2:
+                    self.ctx.log.warning("Error during AI yara response split english version:", error=e2)
+                    print_response = 1
+
+                if print_response == 1:
+                    self.ctx.log.warning("Response from Gemini AI yara: {}".format(response.text))
+
+            except AIError as e:
+                self.ctx.log.warning("Failed to retrieve AI report yara", error=e)
 
         return {
             "gemini_report": {

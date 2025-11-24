@@ -41,4 +41,23 @@
     </tbody>
   </table>
 
+  {% if post.ai.gemini_report %}
+  <table class="table has-striped-rows">
+    <tbody>
+      <tr>
+        <td>Italian</td>
+      </tr>
+      <tr>
+        <td>{{ post.ai.gemini_report.it_anubi|safe }}</td>
+      </tr>
+      <tr>
+        <td>English</td>
+      </tr>
+      <tr>
+        <td>{{ post.ai.gemini_report.en_anubi|safe }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% endif %}
+
 {% endcall %}

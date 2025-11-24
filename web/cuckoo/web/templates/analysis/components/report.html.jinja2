@@ -126,4 +126,9 @@ function downloadMyElement() {
         {% if pre.static and pre.static.pdf %}
           {% include "analysis/components/pdffiles.html.jinja2" %}
         {% endif %}
+
+        {% if pre.static and pre.static.sevenzip %}
+          {% include "analysis/components/sevenzipfiles.html.jinja2" %}
+        {% endif %}
+
 </div>

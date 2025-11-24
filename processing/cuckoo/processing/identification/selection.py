@@ -21,6 +21,8 @@ from ..errors import CancelProcessing
 
 set_logger_level("PIL.Image", logging.WARNING)
 
+SKIP_UNPACKER = ("pdffile", "7zfile")
+
 def find_selected(f, tracklist):
     if f.selected:
         tracklist.append(f)
@@ -91,8 +93,9 @@ class Identify(Processor):
             raise CancelProcessing(f"Unexpected Sflock unpacking failure. {e}")
 
         if f.mode:
-            #Continue if unpack fails for pdf
-            if not f.unpacker=="pdffile":
+            
+            #Continue if unpack fails for list of pdf
+            if not f.unpacker in SKIP_UNPACKER:
                 raise CancelProcessing(
                     f"Failed to unpack file: {f.error}. Unpacker: {f.unpacker}"
                 )

@@ -21,6 +21,26 @@ from sflock import magic as sflockmagic
 
 from ..errors import StaticAnalysisError
 
+
+OVERLAY_BIN_PATH = "/tmp/overlay.bin"
+OVERLAY_PATH = "/tmp/overlay"
+MAGIC_SIGNATURES = {
+    b"\x4D\x5A": "PE Executable (EXE/DLL)",
+    b"\x37\x7A\xBC\xAF\x27\x1C": "7-Zip Archive",
+    b"\x50\x4B\x03\x04": "ZIP Archive",
+    b"\x52\x61\x72\x21\x1A\x07": "RAR Archive",
+    b"\x25\x50\x44\x46": "PDF Document",
+    b"\x1F\x8B": "GZIP",
+    b"\x4D\x53\x43\x46": "CAB Archive",
+    b"\x89\x50\x4E\x47": "PNG Image",
+    b"\xFF\xD8\xFF": "JPEG Image",
+    b"\x49\x44\x33": "MP3 Audio",
+    b"\x7F\x45\x4C\x46": "ELF Binary",
+    b"\x43\x57\x53": "SWF Flash (compressed)",
+    b"\x46\x57\x53": "SWF Flash (uncompressed)",
+}
+
+
 class PEStaticAnalysisError(StaticAnalysisError):
     pass
 
@@ -463,6 +483,49 @@ class PEFile:
 
         return self._peid_sigdb.match(self._pe, ep_only=True) or []
 
+    def extract_overlay(self, pe, file_size):
+        last = pe.sections[-1]
+        end_of_last_section = last.PointerToRawData + last.SizeOfRawData
+
+        if end_of_last_section >= file_size:
+            print("[✓] Nessun overlay rilevato.")
+            return None
+
+        with open(self.filepath_orig, "rb") as f:
+            f.seek(end_of_last_section)
+            overlay = f.read()
+
+        with open(OVERLAY_BIN_PATH, "wb") as out:
+            out.write(overlay)
+
+        print(f"[✓] Overlay salvato: overlay_dump.bin ({len(overlay)} bytes)")
+        return overlay
+
+    def scan_for_signatures(self, data):
+        for sig, desc in MAGIC_SIGNATURES.items():
+            offset = data.find(sig)
+            if offset != -1:
+                print("Trovato overlay " + desc)
+                with open(OVERLAY_PATH, "wb") as f:
+                    f.write(data[offset:])
+                    return True
+
+        return False
+
+    def get_overlay(self):
+
+        pe = pefile.PE(self.filepath_orig)
+        file_size = os.path.getsize(self.filepath_orig)
+
+        overlay = self.extract_overlay(pe, file_size)
+        if not overlay:
+            return False
+
+        print("\n[•] Analisi dell'overlay...\n")
+
+        data = open(OVERLAY_BIN_PATH, "rb").read()
+        return self.scan_for_signatures(data)
+
     def to_dict(self):
 
         return {
@@ -475,5 +538,6 @@ class PEFile:
             "pe_imphash": self.get_imphash(),
             "pe_timestamp": self.get_compile_timestamp(),
             "signatures": self.get_certificates(),
-            "certificates": self.get_certificates_signatures()
+            "certificates": self.get_certificates_signatures(),
+            "overlay": self.get_overlay()
         }

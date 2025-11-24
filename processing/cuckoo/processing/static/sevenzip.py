@@ -26,23 +26,20 @@ from pathlib import Path
 CHAR_BEFORE_AFTER = 20
 
 
-class TarStaticAnalysisError(StaticAnalysisError):
-  pass
-
-class TarFile(Processor):
+class SevenZipFile(Processor):
 
   _TYPE_HANDLER = {
     ("application/x-pie-executable", "application/x-sharedlib"): (ElfFile, "elf"),
     ("application/x-dosexec"): (PEFile, "pe")
   }
 
-  def strings_file_in_tar(self, target, file_path):
+  def strings_file_in_SevenZip(self, target, file_path):
     return StringsDetonation(file_path, self.log_handler, self.errtracker_handler)
 
-  def anubi_file_in_tar(self, orig_filename, file_path):
+  def anubi_file_in_SevenZip(self, orig_filename, file_path):
     return anubi_analyze_single_file(file_path, orig_filename)
 
-  def process_file_in_tar(self, target, file_path):
+  def process_file_in_SevenZip(self, target, file_path):
 
     data = {}
     subkey = None
@@ -53,7 +50,7 @@ class TarFile(Processor):
         continue
 
       handler, subkey = handler_subkey
-      self.log_handler.info(f"[TAR analysis] [{file_path}] handling {handler} for {subkey}")
+      self.log_handler.info(f"[SevenZip analysis] [{file_path}] handling {handler} for {subkey}")
       try:
         data = handler(file_path, self.log_handler, self.errtracker_handler).to_dict()
       except StaticAnalysisError as e:
@@ -75,8 +72,8 @@ class TarFile(Processor):
 
     return {}
 
-  def in_tar_file_details(self, filepath):
-    self.log_handler.info(f"[TAR analysis] [{filepath}] recovering file metadata")
+  def in_SevenZip_file_details(self, filepath):
+    self.log_handler.info(f"[SevenZip analysis] [{filepath}] recovering file metadata")
     file_helper = File(filepath)
     return file_helper.to_dict()
 
@@ -97,15 +94,16 @@ class TarFile(Processor):
     result = subprocess.run(cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return result.stdout.decode(errors='ignore'), result.stderr.decode(errors='ignore')
 
-  def extract_tar_streams(self, tar_path):
-    # Usa 7z per elencare i flussi nel file tar 
-    return self.run_cmd(['tar', 'tvf', tar_path])
+  def extract_SevenZip_streams(self, SevenZip_path):
+    # Usa 7z per elencare i flussi nel file SevenZip
+    return self.run_cmd(['7z', 'l', SevenZip_path])
 
-  def get_tar_content(self, tar_path, ritorno, extract, delete):
+  def get_SevenZip_content(self, SevenZip_path, ritorno, extract, delete):
     if extract:
       tempdir = tempfile.mkdtemp()
       ritorno = {'origin': tempdir, 'filenames': []}
-      self.run_cmd(['tar', 'zxvf', tar_path, "-C", tempdir])
+
+      self.run_cmd(['7z', 'x', SevenZip_path, f"-o{tempdir}"])
 
       for root, dirs, files in os.walk(tempdir, topdown=True):
         new_dirs = []
@@ -124,17 +122,17 @@ class TarFile(Processor):
         for file in files:
           file_path = f"{Path(root) / file}"
           file_name = file_path.replace(f"{tempdir}/", "")
-          details = self.in_tar_file_details(file_path)
+          details = self.in_SevenZip_file_details(file_path)
           if os.path.islink(file_path):
-            self.log_handler.info(f"[TAR analysis] skipped {file_path} because link")
+            self.log_handler.info(f"[SevenZip analysis] skipped {file_path} because link")
           else:
             ritorno['filenames'].append({
               'name': file_name,
               'path': file_path,
               'details': details,
-              'analysis': self.process_file_in_tar(details, file_path),
-              'strings': self.strings_file_in_tar(details, file_path),
-              'anubi': self.anubi_file_in_tar(file_name, file_path)
+              'analysis': self.process_file_in_SevenZip(details, file_path),
+              'strings': self.strings_file_in_SevenZip(details, file_path),
+              'anubi': self.anubi_file_in_SevenZip(file_name, file_path)
             })
 
     if delete:
@@ -142,7 +140,7 @@ class TarFile(Processor):
     return ritorno
 
   def parse_streams_listing(self):
-    output, stderr = self.extract_tar_streams(self._filepath)
+    output, stderr = self.extract_SevenZip_streams(self._filepath)
     lines = output.splitlines()
     suspicious = []
     for line in lines:
@@ -151,9 +149,9 @@ class TarFile(Processor):
           suspicious.append({'sospetto': True, 'pattern': pattern, 'occurrences': self.prendi_tutti_contesti(line.lower(), pattern, CHAR_BEFORE_AFTER)})
     return suspicious or [{'info': 'No suspicious flow has been found'}]
 
-  def search_suspicious_content(self, tar_path):
-    # Estrai stringhe dal binario tar 
-    output, stderr = self.run_cmd(['strings', tar_path])
+  def search_suspicious_content(self, SevenZip_path):
+    # Estrai stringhe dal binario SevenZip
+    output, stderr = self.run_cmd(['strings', SevenZip_path])
     lines = output.splitlines()
     findings = []
     for line in lines:
@@ -170,7 +168,7 @@ class TarFile(Processor):
   def to_dict(self):
 
     return {
-      "content": self.get_tar_content(self._filepath, {}, True, True),
+      "content": self.get_SevenZip_content(self._filepath, {}, True, True),
       "streams": self.parse_streams_listing(),
       "suspicious_strings": self.search_suspicious_content(self._filepath)
       #"certificate_chain": self.get_certificates_chain(),

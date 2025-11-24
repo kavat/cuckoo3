@@ -89,10 +89,35 @@ def index(request, analysis_id):
           pre_postanalysis['static']['elf']['elf_analysis'][tag][k]['Suspected'] = str(suspected)
 
     if skip_post != True and 'ai' in post and 'gemini_report' in post['ai']:
-      gemini_report_it = pypandoc.convert_text(post['ai']['gemini_report']['it'], 'html', format='md').replace(" * ","<br>")
-      gemini_report_en = pypandoc.convert_text(post['ai']['gemini_report']['en'], 'html', format='md').replace(" * ","<br>")
+      gemini_report_it = ""
+      gemini_report_en = ""
+      gemini_report_it_anubi = ""
+      gemini_report_en_anubi = ""
+
+      try:
+        gemini_report_it = pypandoc.convert_text(post['ai']['gemini_report']['it'], 'html', format='md').replace(" * ","<br>")
+      except:
+        gemini_report_it = "Error during Gemini AI general parsing (italian version)"
+
+      try:
+        gemini_report_en = pypandoc.convert_text(post['ai']['gemini_report']['en'], 'html', format='md').replace(" * ","<br>")
+      except:
+        gemini_report_en = "Error during Gemini AI general parsing (english version)"
+
+      try:
+        gemini_report_it_anubi = pypandoc.convert_text(post['ai']['gemini_report']['it_y'], 'html', format='md').replace(" * ","<br>")
+      except:
+        gemini_report_it_anubi = "Error during Gemini AI anubi parsing (italian version)"
+
+      try:
+        gemini_report_en_anubi = pypandoc.convert_text(post['ai']['gemini_report']['en_y'], 'html', format='md').replace(" * ","<br>")
+      except:
+        gemini_report_en_anubi = "Error during Gemini AI anubi parsing (english version)"
+
       post['ai']['gemini_report']['it'] = gemini_report_it
       post['ai']['gemini_report']['en'] = gemini_report_en
+      post['ai']['gemini_report']['it_anubi'] = gemini_report_it_anubi
+      post['ai']['gemini_report']['en_anubi'] = gemini_report_en_anubi
 
     return render(
       request, template_name="analysis/index.html.jinja2",

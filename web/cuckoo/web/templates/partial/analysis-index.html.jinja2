@@ -25,6 +25,11 @@
                 <a role="tab" href="#pdffiles">PDF File</a>
               </li>
             {% endif %}
+            {% if pre.static and pre.static.sevenzip %}
+              <li>
+                <a role="tab" href="#sevenzipfiles">7Zip File</a>
+              </li>
+            {% endif %}
             {% if pre.static and pre.static.pe %}
               <li>
                 <a role="tab" href="#pefiles">PE File</a>

@@ -1,4 +1,4 @@
-{% call ui_box(title="TAR file", has_padding=False) %}
+{% call ui_box(title="7Zip file", has_padding=False) %}
   <table class="table has-striped-rows">
     <thead>
       <tr>
@@ -46,7 +46,7 @@
     </tbody>
   </table>
 {% endcall %}
-{% for elem in pre.static.tar.content.filenames %}
+{% for elem in pre.static.sevenzip.content.filenames %}
   {% call ui_box(title=elem['name'], has_padding=False) %}
     <table class="table has-striped-rows">
       <thead>

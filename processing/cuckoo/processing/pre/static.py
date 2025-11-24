@@ -14,6 +14,7 @@ from ..static.pdf import PDFFile
 from ..static.elf import ElfFile
 from ..static.msi import MSIFile
 from ..static.tar import TarFile
+from ..static.sevenzip import SevenZipFile
 from ..errors import StaticAnalysisError
 
 class StringsAnalysis(Processor):
@@ -64,9 +65,14 @@ class FileInfoGather(Processor):
           "xlsb", "xla", "xlam", "xll", "xlw",): (OfficeDocument, "office"),
         # PDF
         (".pdf"): (PDFFile, "pdf"),
+        # Linux library
         (".elf"): (ElfFile, "elf"),
+        # Windows installer
         (".msi"): (MSIFile, "msi"),
-        (".tar", ".tar.gz", ".tar.bz2", ".tar"): (TarFile, "tar")
+        # TAR files
+        (".tar", ".tar.gz", ".tar.bz2", ".tar"): (TarFile, "tar"),
+        # 7zip files
+        (".7z", ".7zip"): (SevenZipFile, "sevenzip")
     }
 
     def start(self):

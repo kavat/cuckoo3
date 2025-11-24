@@ -205,6 +205,13 @@
           </div>
         {% endif %}
 
+        {# tab: pre.static.sevenzip #}
+        {% if pre.static and pre.static.sevenzip %}
+          <div role="region" id="sevenzipfiles" hidden>
+            {% include "analysis/components/sevenzipfiles.html.jinja2" %}
+          </div>
+        {% endif %}
+
         {# tab: pre.strings #}
         {% if pre.strings %}
           <div role="region" id="strings" hidden>

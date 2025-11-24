@@ -47,7 +47,10 @@ class PDFFile:
 
     def to_dict(self):
 
+        general_content = self.general_content()
+        decoded_content = self.uncompress_flatdecode()
+
         return {
-            "pdf_general_content": self.general_content(),
-            "pdf_decoded_content": self.uncompress_flatdecode()
+            "pdf_general_content": general_content,
+            "pdf_decoded_content": decoded_content
         }
