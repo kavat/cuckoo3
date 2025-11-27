@@ -351,6 +351,9 @@ class AIInfoGather(Processor):
             except AIError as e:
                 self.ctx.log.warning("Failed to retrieve AI report general", error=e)
 
+            except Exception as e_gen:
+                self.ctx.log.warning("Failed to retrieve AI report general, generic exception", error=e_gen)
+
         content = self._get_content_for_report_yara("/opt/anubi/conf/anubi-signatures/yara/")
 
         if content == "":
@@ -396,6 +399,9 @@ class AIInfoGather(Processor):
 
             except AIError as e:
                 self.ctx.log.warning("Failed to retrieve AI report yara", error=e)
+
+            except Exception as e_gen:
+                self.ctx.log.warning("Failed to retrieve AI report yara, generic exception", error=e_gen)
 
         return {
             "gemini_report": {
