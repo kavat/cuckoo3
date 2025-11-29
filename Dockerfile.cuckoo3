@@ -2,95 +2,41 @@ FROM ubuntu:22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install pandoc enchant-2 git build-essential python3-dev python3.10-venv libhyperscan5 libhyperscan-dev libjpeg8-dev zlib1g-dev unzip p7zip-full rar unace-nonfree cabextract yara tcpdump genisoimage qemu-system-x86 qemu-utils qemu-system-common uwsgi uwsgi-plugin-python3 nginx libcairo2-dev libjpeg-turbo8-dev libpng-dev libtool-bin libossp-uuid-dev libvncserver-dev freerdp2-dev libssh2-1-dev libtelnet-dev libwebsockets-dev libpulse-dev libvorbis-dev libwebp-dev libssl-dev libpango1.0-dev libswscale-dev libavcodec-dev libavutil-dev libavformat-dev nmap upx msitools p7zip-full binutils osslsigncode -y
+RUN apt-get update
+RUN apt-get install pandoc enchant-2 git build-essential python3-dev python3-pip libhyperscan5 libhyperscan-dev libjpeg8-dev zlib1g-dev unzip p7zip-full rar unace-nonfree cabextract yara tcpdump genisoimage qemu-system-x86 qemu-utils qemu-system-common uwsgi uwsgi-plugin-python3 nmap upx msitools p7zip-full binutils osslsigncode -y
 
 RUN useradd cuckoo
 RUN chsh -s /bin/bash cuckoo
 RUN mkdir /home/cuckoo
 RUN chown cuckoo:cuckoo /home/cuckoo
 RUN adduser cuckoo kvm
-RUN adduser www-data cuckoo
 RUN groupadd pcap
 RUN adduser cuckoo pcap
+
 RUN chgrp pcap /usr/bin/tcpdump
 RUN setcap cap_net_raw,cap_net_admin=eip /usr/bin/tcpdump
-RUN ln -s /etc/apparmor.d/usr.bin.tcpdump /etc/apparmor.d/disable/
-RUN apparmor_parser -R /etc/apparmor.d/disable/usr.bin.tcpdump
-RUN apparmor_parser -r /etc/apparmor.d/usr.bin.tcpdump
 
-RUN mkdir /mnt/win10x64
-
-RUN chown cuckoo /opt && cd /opt
+RUN chown cuckoo /opt
 
 USER cuckoo
+WORKDIR /opt
 
-RUN git clone https://github.com/kavat/cuckoo3
-RUN git clone https://github.com/kavat/vmcloak
-RUN git clone https://github.com/kavat/anubi
+git clone https://github.com/kavat/cuckoo3
+git clone https://github.com/kavat/anubi
 
 WORKDIR /opt/cuckoo3
 RUN ./install.sh
-RUN cuckoo createcwd
-RUN cuckoo getmonitor monitor.zip
-RUN unzip signatures.zip -d ~/.cuckoocwd/signatures/cuckoo/
-
-WORKDIR /opt/vmcloak
-RUN pip install .
+RUN pip3 install uwsgi
 
 WORKDIR /opt/anubi
-RUN pip install -r pip_requirements.txt
+RUN pip3 install -r pip_requirements.txt
 
-RUN mkdir /opt/local_scripts
-COPY local_scripts /opt
-RUN chmod +x /opt/local_scripts/delete_analysis.sh
-RUN chmod +x /opt/local_scripts/monitor_logs.sh
-RUN chmod +x /opt/local_scripts/start_cuckoo.sh
+COPY local_scripts/start_cuckoo.sh /usr/local/bin/start_cuckoo
+COPY local_scripts/monitor_logs.sh /usr/local/bin/cuckoo_logs
+COPY local_scripts/delete_analysis.sh /usr/local/bin/cuckoo_delete_analysis
 
-# Building VM using vmcloak project
-RUN vmcloak isodownload --win10x64 --download-to /home/cuckoo/win10x64.iso
+RUN chmod +x /usr/local/bin/start_cuckoo
+RUN chmod +x /usr/local/bin/cuckoo_logs
+RUN chmod +x /usr/local/bin/cuckoo_delete_analysis
 
-USER root
-
-RUN mount -o loop,ro /home/cuckoo/win10x64.iso /mnt/win10x64
-
-USER cuckoo
-
-RUN vmcloak --debug init --win10x64 --hddsize 128 --cpus 2 --ramsize 4096 --network 192.168.30.0/24 --vm qemu --ip 192.168.30.2 --iso-mount /mnt/win10x64 win10base br0
-RUN vmcloak --debug install win10base dotnet:4.7.2 java:8u151 vcredist:2013 vcredist:2019 carootcert firefox tightvnc wallpaper uninstallsw disableservices
-RUN vmcloak --debug snapshot --count 1 win10base win10vm_192.168.30.2
-
-# Importing created VM into cuckoo3
-RUN cuckoo machine import qemu /home/cuckoo/.vmcloak/vms/qemu
-RUN cuckoo machine delete qemu example1
-
-# Building static docs
-WORKDIR /opt/cuckoo3
-RUN cuckoomigrate database all 2>&1 > /dev/null
-RUN cuckoomigrate database all 2>&1 > /dev/null
-
-WORKDIR /opt/cuckoo3/docs
-RUN pip install -r requirements.txt
-RUN mkdocs build
-RUN cp -R site ../web/cuckoo/web/static/docs
-
-# Creating configurations for web facing
-WORKDIR /opt/cuckoo3
-pip install uwsgi
-cuckoo web generateconfig --uwsgi > /tmp/cuckoo-web.ini
-
-USER root
-RUN mv /tmp/cuckoo-web.ini /etc/uwsgi/apps-available/
-RUN ln -s /etc/uwsgi/apps-available/cuckoo-web.ini /etc/uwsgi/apps-enabled/cuckoo-web.ini
-
-USER cuckoo
-
-RUN echo 'STATIC_ROOT = "/opt/cuckoo3/web/cuckoo/web/static"' >> /home/cuckoo/.cuckoocwd/web/web_local_settings.py
-
-USER root
-
-COPY local_templates/cuckoo-web.conf /etc/nginx/sites-available/cuckoo-web.conf
-RUN /etc/nginx/sites-available/cuckoo-web.conf /etc/nginx/sites-enabled/cuckoo-web.conf
-RUN rm /etc/nginx/sites-enabled/default
-
-EXPOSE 80 
-ENTRYPOINT ["/opt/local_scripts/start_cuckoo.sh"]
+ENV PATH="${PATH}:/home/cuckoo/.local/bin"

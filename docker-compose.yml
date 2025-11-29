@@ -1,0 +1,114 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: cuckoo3_guac-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: guacamole_db
+      MYSQL_USER: guacamole_user
+      MYSQL_PASSWORD: password
+    volumes:
+      - ./docker_templates/sql:/tmp/templates
+      - guac-mariadb-data:/var/lib/mysql
+    networks:
+      - vpcbr
+
+  guacamole:
+    image: guacamole/guacamole:1.5.3
+    container_name: cuckoo3_guacamole
+    restart: always
+    depends_on:
+      - mariadb
+    environment:
+      GUACD_HOSTNAME: guacd
+      MYSQL_HOSTNAME: mariadb
+      MYSQL_DATABASE: guacamole_db
+      MYSQL_USER: guacamole_user
+      MYSQL_PASSWORD: password
+    ports:
+      - "8080:8080"
+    networks:
+      - vpcbr
+
+  cuckoo3:
+    build:
+      context: .
+      dockerfile: Dockerfile.cuckoo3
+    container_name: cuckoo3_core
+    privileged: true
+    restart: always
+    entrypoint: ["/cuckoo3_entrypoint.sh"]
+    command: ["tail", "-f","/dev/null"]
+    volumes:
+      - ./vmcloak_data:/home/cuckoo/.vmcloak
+      - ./cuckoo3_cwd:/home/cuckoo/.cuckoocwd
+    devices:
+      - "/dev/kvm:/dev/kvm"
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.5.3
+    depends_on:
+      - elasticsearch
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    container_name: cuckoo3_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - cluster.routing.allocation.disk.watermark.low=97%
+      - cluster.routing.allocation.disk.watermark.high=98%
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - vpcbr
+
+  guacd:
+    build:
+      context: .
+      dockerfile: Dockerfile.guacd
+    container_name: cuckoo3_guacd
+    restart: always
+    entrypoint: ["/guacd_entrypoint.sh"]
+    command: ["/opt/guacamole/sbin/guacd", "-b", "0.0.0.0", "-f"]
+    depends_on:
+      - vmcloak
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - vpcbr
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: cuckoo3_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker_templates/cuckoo3.conf:/etc/nginx/conf.d/cuckoo3.conf:ro
+    depends_on:
+      - cuckoo3
+    networks:
+      - vpcbr
+
+volumes:
+  guac-mariadb-data:
+  es-data
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.5.0/24
+         gateway: 10.5.5.1

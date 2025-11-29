@@ -1,0 +1,11 @@
+FROM guacamole/guacd:1.5.3
+
+USER root
+
+RUN apk update && \
+    apk add --no-cache iproute2 iputils
+
+COPY docker_templates/scripts/guacd_entrypoint.sh /guacd_entrypoint.sh
+RUN chmod +x /guacd_entrypoint.sh
+
+USER root
