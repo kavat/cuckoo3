@@ -4,7 +4,7 @@ echo "Check for first configuration"
 if [ -f /home/cuckoo/.cuckoo/FIRST_DONE ]; then
   echo "Already done"
 else
-
+  adduser cuckoo kvm
 fi
 
 chmod 666 /dev/kvm

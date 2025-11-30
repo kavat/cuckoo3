@@ -9,7 +9,6 @@ RUN useradd cuckoo
 RUN chsh -s /bin/bash cuckoo
 RUN mkdir /home/cuckoo
 RUN chown cuckoo:cuckoo /home/cuckoo
-RUN adduser cuckoo kvm
 RUN groupadd pcap
 RUN adduser cuckoo pcap
 
@@ -21,8 +20,8 @@ RUN chown cuckoo /opt
 USER cuckoo
 WORKDIR /opt
 
-git clone https://github.com/kavat/cuckoo3
-git clone https://github.com/kavat/anubi
+RUN git clone https://github.com/kavat/cuckoo3
+RUN git clone https://github.com/kavat/anubi
 
 WORKDIR /opt/cuckoo3
 RUN ./install.sh
@@ -34,6 +33,8 @@ RUN pip3 install -r pip_requirements.txt
 COPY local_scripts/start_cuckoo.sh /usr/local/bin/start_cuckoo
 COPY local_scripts/monitor_logs.sh /usr/local/bin/cuckoo_logs
 COPY local_scripts/delete_analysis.sh /usr/local/bin/cuckoo_delete_analysis
+
+USER root
 
 RUN chmod +x /usr/local/bin/start_cuckoo
 RUN chmod +x /usr/local/bin/cuckoo_logs

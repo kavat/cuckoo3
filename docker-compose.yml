@@ -15,6 +15,9 @@ services:
       - vpcbr
 
   guacamole:
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile.guacamole
     image: guacamole/guacamole:1.5.3
     container_name: cuckoo3_guacamole
     restart: always
@@ -38,7 +41,7 @@ services:
     container_name: cuckoo3_core
     privileged: true
     restart: always
-    entrypoint: ["/cuckoo3_entrypoint.sh"]
+    #entrypoint: ["/cuckoo3_entrypoint.sh"]
     command: ["tail", "-f","/dev/null"]
     volumes:
       - ./vmcloak_data:/home/cuckoo/.vmcloak
@@ -47,7 +50,7 @@ services:
       - "/dev/kvm:/dev/kvm"
     networks:
       vpcbr:
-        ipv4_address: 10.5.5.3
+        ipv4_address: 10.5.7.30
     depends_on:
       - elasticsearch
 
@@ -80,7 +83,7 @@ services:
     entrypoint: ["/guacd_entrypoint.sh"]
     command: ["/opt/guacamole/sbin/guacd", "-b", "0.0.0.0", "-f"]
     depends_on:
-      - vmcloak
+      - cuckoo3
     cap_add:
       - NET_ADMIN
     networks:
@@ -103,12 +106,12 @@ services:
 
 volumes:
   guac-mariadb-data:
-  es-data
+  es-data:
 
 networks:
   vpcbr:
     driver: bridge
     ipam:
      config:
-       - subnet: 10.5.5.0/24
-         gateway: 10.5.5.1
+       - subnet: 10.5.7.0/24
+         gateway: 10.5.7.1

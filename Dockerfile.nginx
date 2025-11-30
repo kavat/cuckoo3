@@ -3,7 +3,7 @@ FROM nginx:latest
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt update
-RUN apt install git
+RUN apt install -y git
 
 WORKDIR /opt
 RUN git clone https://github.com/kavat/cuckoo3
