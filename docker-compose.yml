@@ -44,8 +44,8 @@ services:
     #entrypoint: ["/cuckoo3_entrypoint.sh"]
     command: ["tail", "-f","/dev/null"]
     volumes:
+      - ./cuckoo3_home:/home/cuckoo
       - ./vmcloak_data:/home/cuckoo/.vmcloak
-      - ./cuckoo3_cwd:/home/cuckoo/.cuckoocwd
     devices:
       - "/dev/kvm:/dev/kvm"
     networks:
