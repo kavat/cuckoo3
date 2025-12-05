@@ -39,6 +39,7 @@ COPY local_scripts/init_cuckoo.sh /usr/local/bin/init_cuckoo
 RUN chmod +x /usr/local/bin/start_cuckoo
 RUN chmod +x /usr/local/bin/cuckoo_logs
 RUN chmod +x /usr/local/bin/cuckoo_delete_analysis
+RUN chmod +x /usr/local/bin/init_cuckoo_delete
 
 USER cuckoo
 WORKDIR /opt/cuckoo3
