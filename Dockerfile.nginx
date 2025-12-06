@@ -7,6 +7,10 @@ RUN apt install -y git
 
 WORKDIR /opt
 RUN git clone https://github.com/kavat/cuckoo3
+WORKDIR /opt/cuckoo3
+RUN git pull
+
+WORKDIR /
 
 COPY ./docker_templates/conf/cuckoo3.conf /etc/nginx/conf.d
 RUN rm /etc/nginx/conf.d/default.conf
