@@ -1,7 +1,7 @@
 services:
   mariadb:
     image: mariadb:10.11
-    container_name: cuckoo3_guac-db
+    container_name: cuckoo3-guac-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
@@ -19,7 +19,7 @@ services:
     #  context: .
     #  dockerfile: Dockerfile.guacamole
     image: guacamole/guacamole:1.5.3
-    container_name: cuckoo3_guacamole
+    container_name: cuckoo3-guacamole
     restart: always
     depends_on:
       - mariadb
@@ -38,7 +38,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.cuckoo3
-    container_name: cuckoo3_core
+    container_name: cuckoo3-core
     privileged: true
     restart: always
     #entrypoint: ["/cuckoo3_entrypoint.sh"]
@@ -57,7 +57,7 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
-    container_name: cuckoo3_elasticsearch
+    container_name: cuckoo3-elasticsearch
     environment:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
@@ -79,7 +79,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.guacd
-    container_name: cuckoo3_guacd
+    container_name: cuckoo3-guacd
     restart: always
     entrypoint: ["/guacd_entrypoint.sh"]
     command: ["/opt/guacamole/sbin/guacd", "-b", "0.0.0.0", "-f"]
@@ -94,7 +94,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.nginx
-    container_name: cuckoo3_nginx
+    container_name: cuckoo3-nginx
     restart: always
     ports:
       - "80:80"
