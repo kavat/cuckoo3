@@ -16,3 +16,5 @@ COPY ./docker_templates/conf/cuckoo3.conf /etc/nginx/conf.d
 RUN rm /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
+
+ENTRYPOINT ["/docker-entrypoint.sh", "nginx"]
