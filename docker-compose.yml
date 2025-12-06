@@ -98,8 +98,6 @@ services:
     restart: always
     ports:
       - "80:80"
-    volumes:
-      - ./docker_templates/cuckoo3.conf:/etc/nginx/conf.d/cuckoo3.conf:ro
     depends_on:
       - cuckoo3
     networks:
