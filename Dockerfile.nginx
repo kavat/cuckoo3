@@ -9,6 +9,12 @@ WORKDIR /opt
 RUN git clone https://github.com/kavat/cuckoo3
 WORKDIR /opt/cuckoo3
 RUN git pull
+RUN apt update && apt install -y python3-venv
+RUN python3 -m venv /opt/venv
+WORKDIR /opt/cuckoo3/docs
+RUN /opt/venv/bin/pip3 install -r requirements.txt
+RUN /opt/venv/bin/mkdocs build
+RUN cp -R site ../web/cuckoo/web/static/docs
 
 WORKDIR /
 
@@ -16,5 +22,3 @@ COPY ./docker_templates/conf/cuckoo3.conf /etc/nginx/conf.d
 RUN rm /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
-
-#ENTRYPOINT ["/docker-entrypoint.sh", "nginx"]
