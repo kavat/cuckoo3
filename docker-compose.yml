@@ -42,9 +42,10 @@ services:
     privileged: true
     restart: always
     #entrypoint: ["/cuckoo3_entrypoint.sh"]
-    command: ["tail", "-f","/dev/null"]
+    command: ["/cuckoo3_entrypoint.sh"]
+    #command: ["tail", "-f","/dev/null"]
     volumes:
-      - ./cuckoo3_home:/home/cuckoo
+      - ./cuckoo3_cwd:/home/cuckoo/.cuckoocwd
       - ./vmcloak_data:/home/cuckoo/.vmcloak
     devices:
       - "/dev/kvm:/dev/kvm"

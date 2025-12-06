@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
-RUN apt-get install pandoc enchant-2 git build-essential python3-dev python3-pip libhyperscan5 libhyperscan-dev libjpeg8-dev zlib1g-dev unzip p7zip-full rar unace-nonfree cabextract yara tcpdump genisoimage qemu-system-x86 qemu-utils qemu-system-common uwsgi uwsgi-plugin-python3 nmap upx msitools p7zip-full binutils osslsigncode -y
+RUN apt-get install pandoc enchant-2 git build-essential python3-dev python3-venv libhyperscan5 libhyperscan-dev libjpeg8-dev zlib1g-dev unzip p7zip-full rar unace-nonfree cabextract yara tcpdump genisoimage qemu-system-x86 qemu-utils qemu-system-common uwsgi uwsgi-plugin-python3 nmap upx msitools p7zip-full binutils osslsigncode -y
 
 RUN useradd cuckoo
 RUN chsh -s /bin/bash cuckoo
@@ -15,34 +15,37 @@ RUN adduser cuckoo pcap
 RUN chgrp pcap /usr/bin/tcpdump
 RUN setcap cap_net_raw,cap_net_admin=eip /usr/bin/tcpdump
 
-RUN chown cuckoo /opt
-
+RUN chown cuckoo:cuckoo /opt -R
 USER cuckoo
 WORKDIR /opt
 
 RUN git clone https://github.com/kavat/cuckoo3
 RUN git clone https://github.com/kavat/anubi
 
+RUN python3 -m venv ./venv
+
 WORKDIR /opt/cuckoo3
-RUN ./install.sh
-RUN pip3 install uwsgi
+RUN git pull
+
+RUN ./install_docker.sh
+RUN /opt/venv/bin/pip3 install uwsgi
 
 WORKDIR /opt/anubi
-RUN pip3 install -r pip_requirements.txt
+RUN git pull
+RUN /opt/venv/bin/pip3 install -r pip_requirements.txt
 
 COPY local_scripts/start_cuckoo.sh /usr/local/bin/start_cuckoo
 COPY local_scripts/monitor_logs.sh /usr/local/bin/cuckoo_logs
 COPY local_scripts/delete_analysis.sh /usr/local/bin/cuckoo_delete_analysis
 COPY local_scripts/init_cuckoo.sh /usr/local/bin/init_cuckoo
+COPY local_scripts/cuckoo3_entrypoint.sh /cuckoo3_entrypoint.sh
 
-#USER root
+USER root
 
 RUN chmod +x /usr/local/bin/start_cuckoo
 RUN chmod +x /usr/local/bin/cuckoo_logs
 RUN chmod +x /usr/local/bin/cuckoo_delete_analysis
-RUN chmod +x /usr/local/bin/init_cuckoo_delete
+RUN chmod +x /usr/local/bin/init_cuckoo
+RUN chmod +x /cuckoo3_entrypoint.sh
 
-USER cuckoo
 WORKDIR /opt/cuckoo3
-
-ENV PATH="${PATH}:/home/cuckoo/.local/bin"

@@ -66,5 +66,5 @@ cuckoo/web/src/package-lock.json
 *.map
 
 # Cuckoo dockerization
-cuckoo3_home/
+cuckoo3_cwd/
 vmcloak_data/
