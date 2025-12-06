@@ -29,8 +29,8 @@ services:
       MYSQL_DATABASE: guacamole_db
       MYSQL_USER: guacamole_user
       MYSQL_PASSWORD: password
-    ports:
-      - "8080:8080"
+    #ports:
+    #  - "8080:8080"
     networks:
       - vpcbr
 
@@ -71,7 +71,7 @@ services:
       - es-data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
-      - "9300:9300"
+    #  - "9300:9300"
     networks:
       - vpcbr
 
