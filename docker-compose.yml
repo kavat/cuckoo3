@@ -102,7 +102,7 @@ services:
       - cuckoo3
     networks:
       - vpcbr
-    command: ["tail", "-f","/dev/null"]
+    #command: ["tail", "-f","/dev/null"]
 
 volumes:
   guac-mariadb-data:

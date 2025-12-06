@@ -24,15 +24,19 @@ USER cuckoo
 WORKDIR /opt
 
 RUN git clone https://github.com/kavat/cuckoo3
+RUN git clone https://github.com/kavat/vmcloak
 RUN git clone https://github.com/kavat/anubi
 
 RUN python3 -m venv ./venv
 
 WORKDIR /opt/cuckoo3
 RUN git pull
-
 RUN ./install_docker.sh
 RUN /opt/venv/bin/pip3 install uwsgi
+
+WORKDIR /opt/vmcloak
+RUN git pull
+RUN /opt/venv/bin/pip3 install .
 
 WORKDIR /opt/anubi
 RUN git pull

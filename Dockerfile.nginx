@@ -17,4 +17,4 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
-ENTRYPOINT ["/docker-entrypoint.sh", "nginx"]
+#ENTRYPOINT ["/docker-entrypoint.sh", "nginx"]
