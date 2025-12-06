@@ -16,6 +16,10 @@ RUN chgrp pcap /usr/bin/tcpdump
 RUN setcap cap_net_raw,cap_net_admin=eip /usr/bin/tcpdump
 
 RUN chown cuckoo:cuckoo /opt -R
+RUN mkdir -p /etc/qemu
+RUN echo 'allow br0' | tee /etc/qemu/bridge.conf
+RUN chmod u+s /usr/lib/qemu/qemu-bridge-helper
+
 USER cuckoo
 WORKDIR /opt
 
