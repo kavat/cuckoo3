@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH_PYTHON3=$(find / -name "python3" | grep venv | xargs dirname)
+PATH_PYTHON3=$(find / -name "python3" 2>/dev/null | grep venv | xargs dirname)
 chmod 666 /dev/kvm
 adduser cuckoo kvm
 /opt/venv/bin/vmcloak-qemubridge br0 192.168.30.1/24

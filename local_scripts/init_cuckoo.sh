@@ -1,9 +1,10 @@
+PATH_PYTHON3=$(find / -name "python3" 2>/dev/null | grep venv | xargs dirname)
 touch /home/cuckoo/.cuckoocwd/.cuckoocwd
-/opt/venv/bin/cuckoo createcwd --update-directories
-/opt/venv/bin/cuckoo createcwd --regen-configs
-/opt/venv/bin/cuckoo getmonitor monitor.zip
+$PATH_PYTHON3/cuckoo createcwd --update-directories
+$PATH_PYTHON3/cuckoo createcwd --regen-configs
+$PATH_PYTHON3/cuckoo getmonitor monitor.zip
 unzip signatures.zip -d ~/.cuckoocwd/signatures/cuckoo/
-/opt/venv/bin/vmcloak-qemubridge br0 192.168.30.1/24
-/opt/venv/bin/cuckoo machine import qemu /home/cuckoo/.vmcloak/vms/qemu
-/opt/venv/bin/cuckoo machine delete qemu example1
-/opt/venv/bin/cuckoomigrate database all
+$PATH_PYTHON3/vmcloak-qemubridge br0 192.168.30.1/24
+$PATH_PYTHON3/cuckoo machine import qemu /home/cuckoo/.vmcloak/vms/qemu
+$PATH_PYTHON3/cuckoo machine delete qemu example1
+$PATH_PYTHON3/cuckoomigrate database all

@@ -1,6 +1,6 @@
 #!/bin/bash
 FILE="$1"
-PATH_PYTHON3=$(find / -name "python3" | grep venv | xargs dirname)
+PATH_PYTHON3=$(find / -name "python3" 2>/dev/null | grep venv | xargs dirname)
 if [[ -z "$FILE" || ! -f "$FILE" ]]; then
   echo "ż File not found in argument"
   exit 1

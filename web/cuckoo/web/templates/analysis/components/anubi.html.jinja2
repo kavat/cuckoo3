@@ -41,7 +41,8 @@
     </tbody>
   </table>
 
-  {% if post.ai.gemini_report %}
+  {% if post.ai %}
+    {% if post.ai.gemini_report %}
   <table class="table has-striped-rows">
     <tbody>
       <tr>
@@ -58,6 +59,7 @@
       </tr>
     </tbody>
   </table>
+    {% endif %}
   {% endif %}
 
 {% endcall %}
