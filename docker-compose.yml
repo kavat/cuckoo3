@@ -41,14 +41,27 @@ services:
     container_name: cuckoo3-core
     privileged: true
     restart: always
-    #entrypoint: ["/cuckoo3_entrypoint.sh"]
     command: ["/cuckoo3_entrypoint.sh"]
-    #command: ["tail", "-f","/dev/null"]
     volumes:
       - ./cuckoo3_cwd:/home/cuckoo/.cuckoocwd
       - ./vmcloak_data:/home/cuckoo/.vmcloak
     devices:
       - "/dev/kvm:/dev/kvm"
+    networks:
+      - vpcbr
+    depends_on:
+      - uwsgi
+
+  uwsgi:
+    build:
+      context: .
+      dockerfile: Dockerfile.cuckoo3
+    container_name: cuckoo3-uwsgi
+    restart: always
+    command: ["/uwsgi_entrypoint.sh"]
+    volumes:
+      - ./cuckoo3_cwd:/home/cuckoo/.cuckoocwd
+      - ./vmcloak_data:/home/cuckoo/.vmcloak
     networks:
       vpcbr:
         ipv4_address: 10.5.7.30

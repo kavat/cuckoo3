@@ -47,6 +47,7 @@ COPY local_scripts/monitor_logs.sh /usr/local/bin/cuckoo_logs
 COPY local_scripts/delete_analysis.sh /usr/local/bin/cuckoo_delete_analysis
 COPY local_scripts/init_cuckoo.sh /usr/local/bin/init_cuckoo
 COPY local_scripts/cuckoo3_entrypoint.sh /cuckoo3_entrypoint.sh
+COPY local_scripts/uwsgi_entrypoint.sh /uwsgi_entrypoint.sh
 
 USER root
 
@@ -56,5 +57,6 @@ RUN chmod +x /usr/local/bin/cuckoo_logs
 RUN chmod +x /usr/local/bin/cuckoo_delete_analysis
 RUN chmod +x /usr/local/bin/init_cuckoo
 RUN chmod +x /cuckoo3_entrypoint.sh
+RUN chmod +x /uwsgi_entrypoint.sh
 
 WORKDIR /opt/cuckoo3
