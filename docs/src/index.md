@@ -39,5 +39,4 @@ File types below are supported:
   - Variable data
   - Anti-debug APIs
 - Microsoft Office and PDF documents (static and dynamic analysis)  
-- MSI files (static and dynamic analysis):
-  all previous listed checks are applied
+- MSI/tar/7-zip files (static and dynamic analysis): all previous listed checks are applied
