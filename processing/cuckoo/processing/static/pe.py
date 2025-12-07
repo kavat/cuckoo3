@@ -24,6 +24,7 @@ from ..errors import StaticAnalysisError
 
 OVERLAY_BIN_PATH = "/tmp/overlay.bin"
 OVERLAY_PATH = "/tmp/overlay"
+
 MAGIC_SIGNATURES = {
     b"\x4D\x5A": "PE Executable (EXE/DLL)",
     b"\x37\x7A\xBC\xAF\x27\x1C": "7-Zip Archive",
@@ -236,6 +237,8 @@ class PEFile:
             raise PEStaticAnalysisError(f"Path {filepath} does not exist")
         self.log_handler = log_handler
         self.errtracker_handler = errtracker_handler
+        self.overlay_path = "{}/../overlays".format(self._path.parent.absolute())
+        Path(self.overlay_path).mkdir(parents=True, exist_ok=True)
 
         try:
             self._pe = pefile.PE(filepath, fast_load=False)
@@ -495,7 +498,7 @@ class PEFile:
             f.seek(end_of_last_section)
             overlay = f.read()
 
-        with open(OVERLAY_BIN_PATH, "wb") as out:
+        with open("{}/overlay.bin".format(self.overlay_path), "wb") as out:
             out.write(overlay)
 
         print(f"[✓] Overlay salvato: overlay_dump.bin ({len(overlay)} bytes)")
@@ -506,7 +509,7 @@ class PEFile:
             offset = data.find(sig)
             if offset != -1:
                 print("Trovato overlay " + desc)
-                with open(OVERLAY_PATH, "wb") as f:
+                with open("{}/overlay".format(self.overlay_path), "wb") as f:
                     f.write(data[offset:])
                     return True
 
@@ -523,7 +526,7 @@ class PEFile:
 
         print("\n[•] Analisi dell'overlay...\n")
 
-        data = open(OVERLAY_BIN_PATH, "rb").read()
+        data = open("{}/overlay.bin".format(self.overlay_path), "rb").read()
         return self.scan_for_signatures(data)
 
     def to_dict(self):
