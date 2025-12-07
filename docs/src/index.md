@@ -15,7 +15,8 @@ Static controls are applied without run file and they are:
   - Hash analysis
   - Yara analysis 
 - MISP intelligence (if enabled)
-- Virustotal (if enabled)
+- Virustotal
+- Gemini AI (to analyse report if enabled)
 
 ### Dynamic (only Windows)
 
@@ -39,5 +40,4 @@ File types below are supported:
   - Variable data
   - Anti-debug APIs
 - Microsoft Office and PDF documents (static and dynamic analysis)  
-- MSI files (static and dynamic analysis):
-  all previous listed checks are applied
+- MSI/tar/7-zip files (static and dynamic analysis): all previous listed checks are applied
