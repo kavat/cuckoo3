@@ -1,5 +1,6 @@
 #!/bin/bash
 FILE="$1"
+PATH_PYTHON3=$(find / -name "python3" | grep venv | xargs dirname)
 if [[ -z "$FILE" || ! -f "$FILE" ]]; then
   echo "ż File not found in argument"
   exit 1
@@ -15,7 +16,7 @@ mkdir "$TMPDIR"
 #echo "Signature recovery..."
 osslsigncode extract-signature -in "$FILE" -out "$SIGNATURE" > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
-  /opt/cuckoo3/venv/bin/python3 /opt/cuckoo3/scripts/export_certificates.py "$FILE" "$SIGNATURE"
+  $PATH_PYTHON3/python3 /opt/cuckoo3/scripts/export_certificates.py "$FILE" "$SIGNATURE"
   if [[ $? -ne 0 ]]; then
     echo "No signature found"
     rm -rf "$TMPDIR"
@@ -26,7 +27,7 @@ fi
 #echo "Certificate conversion..."
 openssl pkcs7 -in "$SIGNATURE" -inform DER -print_certs -out "$CERT_PEM" 2>/dev/null
 if [[ $? -ne 0 ]]; then
-  /opt/cuckoo3/venv/bin/python3 /opt/cuckoo3/scripts/export_certificates.py "$FILE" "$SIGNATURE"
+  $PATH_PYTHON3/python3 /opt/cuckoo3/scripts/export_certificates.py "$FILE" "$SIGNATURE"
   if [[ $? -ne 0 ]]; then
     echo "Certificate conversion failed"
     rm -rf "$TMPDIR"
@@ -57,7 +58,7 @@ done
 #echo "Certificate trust chain verification:"
 openssl verify -verbose -no_check_time -CAfile /etc/ssl/certs/ca-certificates.crt "$CERT_PEM" > /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
-  /opt/cuckoo3/venv/bin/python3 /opt/cuckoo3/scripts/invert_chain_order.py "$CERT_PEM" "$ORDERED_CERT_PEM"
+  $PATH_PYTHON3/python3 /opt/cuckoo3/scripts/invert_chain_order.py "$CERT_PEM" "$ORDERED_CERT_PEM"
   if [[ $? -eq 0 ]]; then
     openssl verify -verbose -no_check_time -CAfile /etc/ssl/certs/ca-certificates.crt "$ORDERED_CERT_PEM" > /dev/null 2>&1
     if [[ $? -ne 0 ]]; then
