@@ -16,7 +16,10 @@ from cryptography.hazmat.primitives.serialization.pkcs7 import (
     load_der_pkcs7_certificates
 )
 from cryptography.x509 import extensions as x509extensions, general_name
-from cuckoo.common.storage import Paths
+from cuckoo.common.storage import (
+    Paths,
+    Resources
+)
 from sflock import magic as sflockmagic
 
 from ..errors import StaticAnalysisError
@@ -237,8 +240,6 @@ class PEFile:
             raise PEStaticAnalysisError(f"Path {filepath} does not exist")
         self.log_handler = log_handler
         self.errtracker_handler = errtracker_handler
-        self.overlay_path = "{}/../overlays".format(self._path.parent.absolute())
-        Path(self.overlay_path).mkdir(parents=True, exist_ok=True)
 
         try:
             self._pe = pefile.PE(filepath, fast_load=False)
@@ -249,7 +250,9 @@ class PEFile:
         import os
 
         pe = pefile.PE(pe_path)
-        base_name = "{}/../".format(os.path.basename(pe_path))
+        pe_basename = os.path.basename(pe_path)
+
+        base_name = "{}/{}".format(Paths.resources(), pe_basename)
         out_dir = os.path.join("resources_dump", base_name)
 
         os.makedirs(out_dir, exist_ok=True)
@@ -534,25 +537,38 @@ class PEFile:
         end_of_last_section = last.PointerToRawData + last.SizeOfRawData
 
         if end_of_last_section >= file_size:
-            print("[✓] Nessun overlay rilevato.")
+            print("No overlay found")
             return None
 
         with open(self.filepath_orig, "rb") as f:
             f.seek(end_of_last_section)
             overlay = f.read()
 
-        with open("{}/overlay.bin".format(self.overlay_path), "wb") as out:
+        pe_basename = os.path.basename(self.filepath_orig)
+        base_name = "{}/{}".format(Paths.resources(), pe_basename)
+        out_dir = os.path.join("overlays", base_name)
+
+        os.makedirs(out_dir, exist_ok=True)
+
+        with open("{}/overlay.bin".format(out_dir), "wb") as out:
             out.write(overlay)
 
-        print(f"[✓] Overlay salvato: overlay_dump.bin ({len(overlay)} bytes)")
+        print(f"Overlay saved: overlay_dump.bin ({len(overlay)} bytes)")
         return overlay
 
     def scan_for_signatures(self, data):
         for sig, desc in MAGIC_SIGNATURES.items():
             offset = data.find(sig)
             if offset != -1:
-                print("Trovato overlay " + desc)
-                with open("{}/overlay".format(self.overlay_path), "wb") as f:
+                print("Found overlay " + desc)
+
+                pe_basename = os.path.basename(self.filepath_orig)
+                base_name = "{}/{}".format(Paths.resources(), pe_basename)
+                out_dir = os.path.join("overlays", base_name)
+
+                os.makedirs(out_dir, exist_ok=True)
+
+                with open("{}/overlay".format(out_dir), "wb") as f:
                     f.write(data[offset:])
                     return True
 

@@ -116,6 +116,8 @@ services:
       - cuckoo3
     networks:
       - vpcbr
+    volumes:
+      - ./cuckoo3_cwd:/opt/cuckoocwd
     #command: ["tail", "-f","/dev/null"]
 
 volumes:

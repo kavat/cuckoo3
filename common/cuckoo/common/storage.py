@@ -100,6 +100,7 @@ class StorageDirs(_CWDDirs):
     IMPORTABLES = "importables"
     UNTRACKED = "untracked"
     NODE_WORK = "nodework"
+    RESOURCES = "resources"
 
     @classmethod
     def list_names(cls):
@@ -110,6 +111,7 @@ class StorageDirs(_CWDDirs):
             cls.IMPORTABLES,
             cls.UNTRACKED,
             cls.NODE_WORK,
+            cls.RESOURCES
         ]
 
 
@@ -621,6 +623,10 @@ class Paths:
         return cuckoocwd.root.joinpath(RootDirs.STORAGE, StorageDirs.BINARIES)
 
     @staticmethod
+    def resources():
+        return cuckoocwd.root.joinpath(RootDirs.STORAGE, StorageDirs.RESOURCES)
+
+    @staticmethod
     def machinestates():
         return cuckoocwd.root.joinpath(
             RootDirs.OPERATIONAL, OperationalDirs.GENERATED, "machinestates.json"
@@ -874,6 +880,40 @@ class Binaries:
     @staticmethod
     def store(binary_dir, file_helper):
         path, dir_path = Binaries.path(binary_dir, file_helper.sha256)
+
+        try:
+            # Try to create the dirs. If they already exist or a race condition
+            # occurs, ignore the exists error.
+            os.makedirs(dir_path)
+        except FileExistsError:
+            pass
+
+        try:
+            file_helper.copy_to(path)
+        except FileExistsError:
+            return File(path)
+
+        return File(path)
+
+
+class Resources:
+    DEPTH = 2
+
+    @staticmethod
+    def path(resources_dir, sha256):
+        """Returns a path to file and directory where the file is located"""
+        if not resources_dir or not sha256 or len(sha256) != 64:
+            raise ValueError("A base path and sha256 hash must be given")
+
+        dir_path = resources_dir
+        for i in range(Resources.DEPTH):
+            dir_path = os.path.join(dir_path, sha256[i])
+
+        return os.path.join(dir_path, sha256), dir_path
+
+    @staticmethod
+    def store(resources_dir, file_helper):
+        path, dir_path = Resources.path(resources_dir, file_helper.sha256)
 
         try:
             # Try to create the dirs. If they already exist or a race condition
