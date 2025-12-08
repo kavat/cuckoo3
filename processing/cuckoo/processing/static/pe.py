@@ -25,9 +25,6 @@ from sflock import magic as sflockmagic
 from ..errors import StaticAnalysisError
 
 
-OVERLAY_BIN_PATH = "/tmp/overlay.bin"
-OVERLAY_PATH = "/tmp/overlay"
-
 MAGIC_SIGNATURES = {
     b"\x4D\x5A": "PE Executable (EXE/DLL)",
     b"\x37\x7A\xBC\xAF\x27\x1C": "7-Zip Archive",
@@ -254,6 +251,8 @@ class PEFile:
 
         base_name = "{}/{}".format(Paths.resources(), pe_basename)
         out_dir = os.path.join("resources_dump", base_name)
+
+        print(f"Creating {out_dir} in extract_resources")
 
         os.makedirs(out_dir, exist_ok=True)
 
@@ -547,6 +546,7 @@ class PEFile:
         pe_basename = os.path.basename(self.filepath_orig)
         base_name = "{}/{}".format(Paths.resources(), pe_basename)
         out_dir = os.path.join("overlays", base_name)
+        print(f"Creating {out_dir} in extract_overlay")
 
         os.makedirs(out_dir, exist_ok=True)
 
@@ -567,6 +567,8 @@ class PEFile:
                 out_dir = os.path.join("overlays", base_name)
 
                 os.makedirs(out_dir, exist_ok=True)
+
+                print(f"Creating {out_dir} in scan_for_signatures")
 
                 with open("{}/overlay".format(out_dir), "wb") as f:
                     f.write(data[offset:])
