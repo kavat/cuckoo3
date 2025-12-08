@@ -549,11 +549,13 @@ class PEFile:
         print(f"Creating {out_dir} in extract_overlay")
 
         os.makedirs(out_dir, exist_ok=True)
+        cur_time = cur_unixtimestamp()
+        overlay_bin_name = "overlay_{}.bin".format(cur_unixtimestamp())
 
-        with open("{}/overlay.bin".format(out_dir), "wb") as out:
+        with open("{}/{}".format(out_dir, overlay_bin_name), "wb") as out:
             out.write(overlay)
 
-        print(f"Overlay saved: overlay_dump.bin ({len(overlay)} bytes)")
+        print(f"Overlay saved: {overlay_bin_name} ({len(overlay)} bytes)")
         return overlay
 
     def scan_for_signatures(self, data):
@@ -570,7 +572,10 @@ class PEFile:
 
                 print(f"Creating {out_dir} in scan_for_signatures")
 
-                with open("{}/overlay".format(out_dir), "wb") as f:
+                cur_time = cur_unixtimestamp()
+                overlay_name = "overlay_{}".format(cur_unixtimestamp())
+
+                with open("{}/{}".format(out_dir, overlay_name), "wb") as f:
                     f.write(data[offset:])
                     return True
 
@@ -587,12 +592,7 @@ class PEFile:
 
         print("Overlay analysis")
 
-        pe_basename = os.path.basename(self.filepath_orig)
-        base_name = "{}/{}".format(Paths.resources(), pe_basename)
-        out_dir = os.path.join("overlays", base_name)
-
-        data = open("{}/overlay.bin".format(out_dir), "rb").read()
-        return self.scan_for_signatures(data)
+        return self.scan_for_signatures(overlay)
 
     def to_dict(self):
 
@@ -610,3 +610,8 @@ class PEFile:
             "overlay": self.get_overlay(),
             "output_resorces": self.extract_resources(self.filepath_orig)
         }
+
+def cur_unixtimestamp():
+    import datetime
+    now = datetime.datetime.now()
+    return int(now.timestamp() * 1000)

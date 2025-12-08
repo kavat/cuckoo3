@@ -96,7 +96,7 @@ class YaraRuleStore:
                 for name, text in extracted.items():
                     self.rules_map[name] = (f, text)
             except Exception as e:
-                print(f"[!] Errore leggendo {f}: {e}", file=sys.stderr)
+                print(f"Error reading {f}: {e}", file=sys.stderr)
 
         # prova a compilare tutte le regole (opzionale ma utile per validazione)
         if YARA_AVAILABLE and per_file_rules:
@@ -109,12 +109,12 @@ class YaraRuleStore:
                 # nota: yara.compile con filepaths mappa namespace->file
                 self.compiled_rules = yara.compile(filepaths=file_mapping)
             except yara.SyntaxError as e:
-                print(f"[!] Errore di sintassi durante la compilazione delle regole YARA: {e}", file=sys.stderr)
+                print(f"Syntax error during Yara rules compiling: {e}", file=sys.stderr)
                 # non interrompere: le regole testate manualmente rimangono nella mappa
             except Exception as e:
-                print(f"[!] Errore inatteso compilando le regole: {e}", file=sys.stderr)
+                print(f"Unexpected error compiling rules: {e}", file=sys.stderr)
         elif not YARA_AVAILABLE:
-            print("[i] Modulo yara-python non installato: salto compilazione (solo estrazione testo).", file=sys.stderr)
+            print("Yara-python module not installed: skip compiling", file=sys.stderr)
 
     def get_rule_body(self, rule_name: str) -> str:
         """
@@ -130,7 +130,7 @@ class YaraRuleStore:
             real = lower[rule_name.lower()]
             _, text = self.rules_map[real]
             return text
-        raise KeyError(f"Regola '{rule_name}' non trovata fra le regole caricate.")
+        raise KeyError(f"Rule '{rule_name}' not found in loaded rules group")
 
     def list_rules(self) -> List[str]:
         return sorted(self.rules_map.keys())
