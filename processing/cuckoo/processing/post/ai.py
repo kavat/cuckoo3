@@ -307,6 +307,11 @@ class AIInfoGather(Processor):
     def start(self):
         content = self._get_content_for_report_general()
 
+        it_version = "Non disponibile"
+        en_version = "Not available"
+        it_y_version = "Non disponibile"
+        en_y_version = "Not available"
+
         if content == "":
             self.ctx.log.warning("Failed to retrieve content for AI report general")
         else:
@@ -331,8 +336,6 @@ class AIInfoGather(Processor):
                 response = model.generate_content(prompt_model + "\n\n" + content)
 
                 print_response = 0
-                it_version = "Non disponibile"
-                en_version = "Not available"
 
                 try:
                     it_version = response.text.split('___|||___')[0]
@@ -380,8 +383,6 @@ class AIInfoGather(Processor):
                 response = model.generate_content(prompt_model + "\n\n" + content)
 
                 print_response = 0
-                it_y_version = "Non disponibile"
-                en_y_version = "Not available"
 
                 try:
                     it_y_version = response.text.split('___|||___')[0]
