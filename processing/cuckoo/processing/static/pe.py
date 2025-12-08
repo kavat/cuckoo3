@@ -583,9 +583,13 @@ class PEFile:
         if not overlay:
             return False
 
-        print("\n[•] Analisi dell'overlay...\n")
+        print("Overlay analysis")
 
-        data = open("{}/overlay.bin".format(self.overlay_path), "rb").read()
+        pe_basename = os.path.basename(self.filepath_orig)
+        base_name = "{}/{}".format(Paths.resources(), pe_basename)
+        out_dir = os.path.join("overlays", base_name)
+
+        data = open("{}/overlay.bin".format(out_dir), "rb").read()
         return self.scan_for_signatures(data)
 
     def to_dict(self):
