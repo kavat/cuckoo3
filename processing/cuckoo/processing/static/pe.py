@@ -245,6 +245,49 @@ class PEFile:
         except pefile.PEFormatError as e:
             raise PEStaticAnalysisError(str(e))
 
+    def extract_resources(self, pe_path):
+        import os
+
+        pe = pefile.PE(pe_path)
+        base_name = "{}/../".format(os.path.basename(pe_path))
+        out_dir = os.path.join("resources_dump", base_name)
+
+        os.makedirs(out_dir, exist_ok=True)
+
+        if not hasattr(pe, "DIRECTORY_ENTRY_RESOURCE"):
+            print("No resource has been found")
+            return []
+
+        def save_entry(entry, path_prefix=""):
+            if hasattr(entry, 'directory'):
+                # Entry directory (tipo → nome → lingua)
+                for e in entry.directory.entries:
+                    name = e.name.string.decode() if e.name else str(e.id)
+                    return save_entry(e, os.path.join(path_prefix, name))
+            else:
+                # Entry finale → contiene i dati della resource
+                data_rva = entry.data.struct.OffsetToData
+                size = entry.data.struct.Size
+                data = pe.get_memory_mapped_image()[data_rva:data_rva + size]
+
+                # Nome file intelligibile
+                filename = path_prefix.replace(os.sep, "_")
+                out_file = os.path.join(out_dir, f"{filename}.bin")
+
+                with open(out_file, "wb") as f:
+                    f.write(data)
+
+                print(f"Saved resource : {out_file}")
+                return out_file
+
+        # Root → iterate tutte le entries
+        r = []
+        for entry in pe.DIRECTORY_ENTRY_RESOURCE.entries:
+            root_name = entry.name.string.decode() if entry.name else str(entry.id)
+            r.append(save_entry(entry, root_name))
+
+        return r
+
     def _get_sec_dir_entry(self):
         secdir_index = pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_SECURITY"]
         try:
@@ -542,5 +585,6 @@ class PEFile:
             "pe_timestamp": self.get_compile_timestamp(),
             "signatures": self.get_certificates(),
             "certificates": self.get_certificates_signatures(),
-            "overlay": self.get_overlay()
+            "overlay": self.get_overlay(),
+            "output_resorces": self.extract_resources(self.filepath_orig)
         }
