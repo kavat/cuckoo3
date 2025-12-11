@@ -27,7 +27,7 @@ from core.ip_checker import (
   IpChecker
 )
 
-def anubi_analyze_single_file(filepath, orig_filename):
+def anubi_analyze_single_file(filepath, orig_filename, local_rules):
 
   rit = {'status':True, 'hash_scan':[], 'yara_scan':[], 'msg':"", "file":orig_filename}
 
@@ -38,7 +38,7 @@ def anubi_analyze_single_file(filepath, orig_filename):
 
   if check_anubi_struct() == False:
     config.loggers["resources"]["logger_anubi_main"].get_logger().info("Create necessary structs")
-    create_anubi_struct(False)
+    create_anubi_struct(local_rules)
   else: 
     config.loggers["resources"]["logger_anubi_main"].get_logger().info("Update existing rules: {}".format(init_rules_repo('main', True)))
     

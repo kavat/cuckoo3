@@ -37,6 +37,10 @@ class AnubiAnalysis(Processor):
     CATEGORY = ["file"]
     KEY = "anubi"
 
+    @classmethod
+    def enabled(cls):
+        return cfg("anubi", "enabled", subpkg="processing")
+
     def start(self):
         target = self.ctx.result.get("target")
 
@@ -44,7 +48,7 @@ class AnubiAnalysis(Processor):
         if os.path.getsize(file_path) < 1:
             return {}
 
-        return anubi_analyze_single_file(file_path, target.orig_filename)
+        return anubi_analyze_single_file(file_path, target.orig_filename, cfg("anubi", "local_rules", subpkg="processing"))
 
 class FileInfoGather(Processor):
 

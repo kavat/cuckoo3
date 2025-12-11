@@ -76,6 +76,10 @@ typeloaders = {
             )
         },
     },
+    "anubi.yaml": {
+      "enabled": config.Boolean(default_val=True),
+      "local_rules": config.Boolean(default_val=False)
+    },
     "virustotal.yaml": {
         "enabled": config.Boolean(default_val=True),
         "key": config.String(
