@@ -45,8 +45,8 @@ services:
     volumes:
       - ./cuckoo3_cwd:/home/cuckoo/.cuckoocwd
       - ./vmcloak_data:/home/cuckoo/.vmcloak
-    devices:
-      - "/dev/kvm:/dev/kvm"
+    #devices:
+    #  - "/dev/kvm:/dev/kvm"
     networks:
       - vpcbr
     depends_on:

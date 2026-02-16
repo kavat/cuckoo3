@@ -15,10 +15,10 @@
 /opt/venv/bin/pip3 install -U pyexecjs
 /opt/venv/bin/pip3 install -U pypandoc
 # TMP solution until new versions of sflock etc are released to PyPI
-/opt/venv/bin/pip3 install -U git+https://github.com/cert-ee/peepdf
-/opt/venv/bin/pip3 install -U git+https://github.com/cert-ee/sflock
-/opt/venv/bin/pip3 install -U git+https://github.com/cert-ee/roach
-/opt/venv/bin/pip3 install -U git+https://github.com/cert-ee/httpreplay
+/opt/venv/bin/pip3 install -U git+https://github.com/kavat/peepdf
+/opt/venv/bin/pip3 install -U git+https://github.com/kavat/sflock
+/opt/venv/bin/pip3 install -U git+https://github.com/kavat/roach
+/opt/venv/bin/pip3 install -U git+https://github.com/kavat/httpreplay
 
 declare -a pkglist=("./common" "./processing" "./machineries" "./web" "./node" "./core")
 
