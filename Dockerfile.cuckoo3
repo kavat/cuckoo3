@@ -41,6 +41,7 @@ RUN /opt/venv/bin/pip3 install .
 WORKDIR /opt/anubi
 RUN git pull
 RUN /opt/venv/bin/pip3 install -r pip_requirements.txt
+RUN ln -s /opt/venv/bin/alembic /usr/local/bin/
 
 COPY local_scripts/start_cuckoo.sh /usr/local/bin/start_cuckoo
 COPY local_scripts/monitor_logs.sh /usr/local/bin/cuckoo_logs

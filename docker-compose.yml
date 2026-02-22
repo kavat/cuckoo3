@@ -48,7 +48,9 @@ services:
     #devices:
     #  - "/dev/kvm:/dev/kvm"
     networks:
-      - vpcbr
+      vpcbr:
+        ipv4_address: 10.5.7.30
+    #  - vpcbr
     depends_on:
       - uwsgi
 
@@ -61,10 +63,10 @@ services:
     command: ["/uwsgi_entrypoint.sh"]
     volumes:
       - ./cuckoo3_cwd:/home/cuckoo/.cuckoocwd
-      - ./vmcloak_data:/home/cuckoo/.vmcloak
+      #- ./vmcloak_data:/home/cuckoo/.vmcloak
     networks:
       vpcbr:
-        ipv4_address: 10.5.7.30
+        ipv4_address: 10.5.7.5
     depends_on:
       - elasticsearch
 

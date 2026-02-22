@@ -8,3 +8,6 @@ $PATH_PYTHON3/vmcloak-qemubridge br0 192.168.30.1/24
 $PATH_PYTHON3/cuckoo machine import qemu /home/cuckoo/.vmcloak/vms/qemu
 $PATH_PYTHON3/cuckoo machine delete qemu example1
 $PATH_PYTHON3/cuckoomigrate database all
+$PATH_PYTHON3/cuckoomigrate database all
+echo "node:
+  info_dump_path: /home/cuckoo/.cuckoocwd/storage/nodeinfo" > /home/cuckoo/.cuckoocwd/node.yaml
