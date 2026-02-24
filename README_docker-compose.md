@@ -55,7 +55,7 @@ cat /tmp/templates/* | mysql -u root -p guacamole_db
 docker exec -it cuckoo3-core /bin/bash
 su - cuckoo
 cd /opt/cuckoo3
-./local_scripts/init_cuckoo.sh
+bash ./local_scripts/init_cuckoo.sh
 # da cambiare
 # in cuckoo.yaml guacamole.db_ip in cuckoo3-guac-db
 # in web.yaml elasticsearch.hosts in http://cuckoo3-elasticsearch:9200

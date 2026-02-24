@@ -64,6 +64,8 @@ services:
     volumes:
       - ./cuckoo3_cwd:/home/cuckoo/.cuckoocwd
       #- ./vmcloak_data:/home/cuckoo/.vmcloak
+    cap_add:
+      - NET_ADMIN
     networks:
       vpcbr:
         ipv4_address: 10.5.7.5
