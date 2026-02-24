@@ -41,7 +41,6 @@ RUN /opt/venv/bin/pip3 install .
 WORKDIR /opt/anubi
 RUN git pull
 RUN /opt/venv/bin/pip3 install -r pip_requirements.txt
-RUN ln -s /opt/venv/bin/alembic /usr/local/bin/
 
 COPY local_scripts/start_cuckoo.sh /usr/local/bin/start_cuckoo
 COPY local_scripts/monitor_logs.sh /usr/local/bin/cuckoo_logs
@@ -59,5 +58,7 @@ RUN chmod +x /usr/local/bin/cuckoo_delete_analysis
 RUN chmod +x /usr/local/bin/init_cuckoo
 RUN chmod +x /cuckoo3_entrypoint.sh
 RUN chmod +x /uwsgi_entrypoint.sh
+
+RUN ln -s /opt/venv/bin/alembic /usr/local/bin/alembic
 
 WORKDIR /opt/cuckoo3
