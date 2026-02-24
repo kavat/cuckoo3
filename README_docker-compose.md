@@ -57,8 +57,10 @@ su - cuckoo
 cd /opt/cuckoo3
 bash ./local_scripts/init_cuckoo.sh
 # da cambiare
-# in cuckoo.yaml guacamole.db_ip in cuckoo3-guac-db
-# in web.yaml elasticsearch.hosts in http://cuckoo3-elasticsearch:9200
+# in cuckoo.yaml guacamole.db_ip cuckoo3-guac-db
+# in cuckoo.yaml guacamole.web_ip 127.0.0.1
+# in cuckoo.yaml guacamole.web_port 80
+# in web.yaml elasticsearch.hosts http://cuckoo3-elasticsearch:9200
 ```
 
 * Restart services to provide modifications
