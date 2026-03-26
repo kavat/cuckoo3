@@ -61,6 +61,7 @@ bash ./local_scripts/init_cuckoo.sh
 # in cuckoo.yaml guacamole.web_ip 127.0.0.1
 # in cuckoo.yaml guacamole.web_port 80
 # in web.yaml elasticsearch.hosts http://cuckoo3-elasticsearch:9200
+# in elasticsearch.yaml elasticsearch.hosts http://cuckoo3-elasticsearch:9200
 ```
 
 * Restart services to provide modifications

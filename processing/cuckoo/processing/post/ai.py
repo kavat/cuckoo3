@@ -170,17 +170,16 @@ class AIInfoGather(Processor):
 
                 if d['anubi']['yara_scan']:
 
-                    first = 0
-
                     for rule in d['anubi']['yara_scan']:
-                        try:
-                            body = store.get_rule_body(rule['rule'])
-                            if first == 0:
-                                first = 1
-                                content = f"{d['target']['filename']}###{d['target']['sha512']}\n"
-                            content = f"{content}--- RULE BODY START ---\n{body}\n--- RULE BODY END ---"
-                        except KeyError as e:
-                            self.ctx.log.warning(f"Error on _get_content_for_report_yara for rule {rule['rule']}:", error=e)
+                        print(f"Anubi rule {rule}")
+                        if isinstance(rule, str):
+                            self.ctx.log.warning(f"Anubi rule '{rule}' is string, discarded")
+                        else:
+                            try:
+                                body = store.get_rule_body(rule['rule'])
+                                content = f"{content}--- RULE BODY START ---\n{body}\n--- RULE BODY END ---"
+                            except KeyError as e:
+                                self.ctx.log.warning(f"Error on _get_content_for_report_yara for rule {rule['rule']}:", error=e)
 
         return content
 
@@ -195,10 +194,10 @@ class AIInfoGather(Processor):
             if 'static' in d and 'elf' in d['static'] and 'elf_analysis' in d['static']['elf']:
 
                 content = f"{content}\n### START ELF GENERIC PARAGRAPH ###"
-                content = f"{content}\nDESCRIPTION=Initial paragraph used to identify operative system used and SHA512 hash of file"
-                content = f"{content}\nHOWTOUSE=Use this paragraph to check online SHA512 hash"
-                content = f"{content}\nHEADER=OS platform;SHA512 file hash"
-                content = f"{content}\nROW=linux;{d['target']['sha512']}"
+                content = f"{content}\nDESCRIPTION=Initial paragraph used to identify operative system used"
+                content = f"{content}\nHOWTOUSE=Use this paragraph as general information"
+                content = f"{content}\nHEADER=OS platform"
+                content = f"{content}\nROW=linux"
                 content = f"{content}\n### END ELF GENERIC PARAGRAPH ###"
 
                 if 'program_header' in d['static']['elf']['elf_analysis']:
@@ -250,10 +249,10 @@ class AIInfoGather(Processor):
             if 'static' in d and 'pe' in d['static']:
 
                 content = f"{content}\n### START GENERIC PARAGRAPH ###"
-                content = f"{content}\nDESCRIPTION=Initial paragraph used to identify operative system used and SHA512 hash of file"
-                content = f"{content}\nHOWTOUSE=Use this paragraph to check online SHA512 hash"
-                content = f"{content}\nHEADER=OS platform;SHA512 file hash"
-                content = f"{content}\nROW=windows;{d['target']['sha512']}"
+                content = f"{content}\nDESCRIPTION=Initial paragraph used to identify operative system used"
+                content = f"{content}\nHOWTOUSE=Use this paragraph as general information"
+                content = f"{content}\nHEADER=OS platform"
+                content = f"{content}\nROW=windows"
                 content = f"{content}\n### END GENERIC PARAGRAPH ###"
 
                 if 'peid_signatures' in d['static']['pe']:
@@ -318,7 +317,7 @@ class AIInfoGather(Processor):
             try:
                 prompt_model = (
                     "You are a cybersecurity specialist expert in malware analysis.\n"
-                    "You will receive in attachment a text formatted as following:\n"
+                    "You will receive in attachment a text formatted as following (it will be your only context):\n"
                     "- Text contains multiple paragraphs\n"
                     "- Each paragraph begins with ### START XXXXXXXX PARAGRAPH ###\n"
                     "- Each paragraph ends with ### END XXXXXXXX PARAGRAPH ###\n"
@@ -326,7 +325,7 @@ class AIInfoGather(Processor):
                     "- Each paragraph contains a line starting with DESCRIPTION occurrence explaining the meaning of the paragraph\n"
                     "- Each paragraph contains a line starting with HEADER occurrence. If it is blank, you has not consider the lines below as a CSV content. Otherwise, you has to consider the lines below a CSV content separated by ; where each value field will correspond to the respective field in HEADER line.\n"
                     "- Each paragraph contains one or more line starting with ROW occurrence that represent the values to be analysed\n"
-                    "Perform the analysis as explained before adding the scope of the software analysed if you are able to retrieve its name from SHA512 hash, ensure avoiding false positives performing more controls and checks. At the end of the analysis, please returns a report in output following next requirements:\n"
+                    "At the end of the analysis, please returns a report in output following next requirements:\n"
                     "- output contains first italian version and after english one\n"
                     "- versions has to be separated by ___|||___ characters\n"
                     "- you have not to include the preamble where you summarize what I asked you to do, return only the analysis"
